@@ -1,13 +1,21 @@
 /**
- * Weronika Zamlynny
- * CS 555 - Project 02
- * Reading from a GEDCOM File
+ * ssw555tm062016Summer
+ * Harshit Singh, Justin Tsang, Weronika Zamlynny
  */
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+
+#ifndef INDI_H
+#define INDI_H
+#endif
+#ifndef FAM_H
+#define FAM_H
+#endif
+// #include "indi.h"
+// #include "fam.h"
 
 using namespace std;
 
@@ -78,7 +86,7 @@ int main() {
     string line, level, tag;
     
     if (gedFile.is_open()) {
-        outputFile.open("project02_output.txt", ios::out);
+        outputFile.open("output.txt", ios::out);
         if (outputFile.is_open()) {
             
             while ( getline (gedFile,line) ) {
