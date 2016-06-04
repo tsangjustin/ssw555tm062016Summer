@@ -25,7 +25,8 @@ using namespace std;
 vector<string> parseLine(string line) {
     vector<string> res;
     string buffer = "";
-    for (int i = 0, j = 0 ; i < line.length(); i++) {
+    int lenLine = line.length();
+    for (int i = 0; i < lenLine; i++) {
         if (line[i] == ' ') {
             // Add to vector and clear buffer
             res.push_back(buffer);
@@ -48,7 +49,7 @@ string validTag(string level, string tag) {
     string error = "Invalid Tag";
     if (level == "0") {
         string validTags [] = {"INDI","FAM","HEAD","TRLR","NOTE"};
-        for (int i = 0; i < sizeof(validTags)/sizeof(validTags[0]); i++) {
+        for (int i = 0; i < (int)sizeof(validTags)/(int)sizeof(validTags[0]); i++) {
             if (tag == validTags[i]){
                 return tag;
             }
@@ -57,7 +58,7 @@ string validTag(string level, string tag) {
     }
     if (level == "1") {
         string validTags [] = {"NAME","SEX","BIRT","DEAT","FAMC","FAMS","MARR","HUSB","WIFE","CHIL","DIV"};
-        for (int i = 0; i < sizeof(validTags)/sizeof(validTags[0]); i++) {
+        for (int i = 0; i < (int)sizeof(validTags)/(int)sizeof(validTags[0]); i++) {
             if (tag == validTags[i]){
                 return tag;
             }
@@ -66,7 +67,7 @@ string validTag(string level, string tag) {
     }
     if (level == "2") {
         string validTags [] = {"DATE"};
-        for (int i = 0; i < sizeof(validTags)/sizeof(validTags[0]); i++) {
+        for (int i = 0; i < (int)sizeof(validTags)/(int)sizeof(validTags[0]); i++) {
             if (tag == validTags[i]){
                 return tag;
             }
