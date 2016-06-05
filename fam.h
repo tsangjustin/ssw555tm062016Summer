@@ -3,70 +3,56 @@
 
 #include "indi.h"
 #include <vector>
-#include <string>
 
 class Indi;
 
 class Fam {
 private:
-    std::string uniqueID_;
-    int * marr_;
-    int husb_;
-    int wife_;
-    std::vector< int > chil_;
-    int * div_;
+    int * marr;
+    Indi * husb;
+    Indi * wife;
+    std::vector< Indi* > chil;
+    int * div;
 public:
-    Fam() {
-        uniqueID_ = "";
-        husb_ = -1;
-        wife_ = -1;
-        chil_.clear();
-        marr_ = new int[3];
-        div_ = new int[3];
-    }
+    
+    
     // Setters:
-    inline void set_id (std::string n) {
-        this->uniqueID_ = n;
-    }
     void set_marr (int d, int m, int y) {
         int arr[] = {d,m,y};
-        this->marr_ = arr;
+        this->marr = arr;
     }
-    void set_husb (int h) {
-        this->husb_ = h;
+    void set_husb (Indi* h) {
+        this->husb = h;
     }
-    void set_wife (int w) {
-        this->wife_ = w;
+    void set_wife (Indi* w) {
+        this->wife = w;
     }
     // void set_chil (std::vector<Indi> c) {
     //     this->chil = c;
     // }
     void set_div (int d, int m, int y) {
         int arr[] = {d,m,y};
-        this->div_ = arr;
+        this->div = arr;
     }
     // Getters:
-    inline std::string get_id () {
-        return this->uniqueID_;
+    int * get_marr () {
+        return this->marr;
     }
-    inline int * get_marr () {
-        return this->marr_;
+    inline Indi * get_husb () {
+        return this->husb;
     }
-    inline int get_husb () {
-        return this->husb_;
+    inline Indi * get_wife () {
+        return this->wife;
     }
-    inline int get_wife () {
-        return this->wife_;
-    }
-    std::vector< int > get_chil () {
-        return this->chil_;
+    std::vector< Indi* > get_chil () {
+        return this->chil;
     }
     int * get_div () {
-        return this->div_;
+        return this->div;
     }
     // Other functions
-    void add_chil (int c) {
-        (this->chil_).push_back(c);
+    void add_chil (Indi* c) {
+        chil.push_back(c);
     }
 };
 
