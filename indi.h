@@ -14,7 +14,7 @@ class Indi {
         bool sex_;
         int* birth_;
         int* death_;
-        int famc_;
+        std::vector< int > famc_;
         std::vector< int > fams_;
     public:
         Indi() {
@@ -43,8 +43,8 @@ class Indi {
             int arr[] = {d,m,y};
             this->death_ = arr;
         }
-        inline void set_famc (int f){
-            this->famc_ = f;
+        inline void add_famc (int f){
+            (this->famc_).push_back(f);
         }
         inline void add_fams (int f) {
             (this->fams_).push_back(f);
@@ -66,7 +66,7 @@ class Indi {
         inline int * get_death () {
             return this->death_;
         }
-        inline int get_famc () {
+        inline std::vector< int > get_famc () {
             return this->famc_;
         }
         inline std::vector< int > get_fams () {

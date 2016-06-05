@@ -81,9 +81,11 @@ int getDigit(string &id) {
             idNum += id[letter];
         }
     }
-    istringstream buffer(idNum);
-    int idVal;
-    buffer >> idVal;
+    int idVal = -1;
+    if (idNum != "") {
+        istringstream buffer(idNum);
+        buffer >> idVal;
+    }
     return idVal;
 }
 
@@ -170,9 +172,13 @@ int main() {
 										} else if (tag == "DEAT") {
 
 										} else if (tag == "FAMS") {
-
+                                            if ((indexID = getDigit(parsed[2])) > -1) {
+                                                uniqueIndi->add_fams(indexID);
+                                            }
 										} else if (tag == "FAMC") {
-
+                                            if ((indexID = getDigit(parsed[2])) > -1) {
+                                                uniqueIndi->add_famc(indexID);
+                                            }
 										// Invalid tag
 										} else {
 
@@ -202,14 +208,17 @@ int main() {
                                 // Fam has values
                                 if ((level != "0") && (isValidTag(true, tag))) {
                                     if (tag == "HUSB") {
-                                        indexID = getDigit(parsed[2]);
-                                        uniqueFam->set_husb(indexID);
+                                        if ((indexID = getDigit(parsed[2])) > -1) {
+                                            uniqueFam->set_husb(indexID);
+                                        }
                                     } else if (tag == "WIFE") {
-                                        indexID = getDigit(parsed[2]);
-                                        uniqueFam->set_wife(indexID);
+                                        if ((indexID = getDigit(parsed[2])) > -1) {
+                                            uniqueFam->set_wife(indexID);
+                                        }
                                     } else if (tag == "CHIL") {
-                                        indexID = getDigit(parsed[2]);
-                                        uniqueFam->add_chil(indexID);
+                                        if ((indexID = getDigit(parsed[2])) > -1) {
+                                            uniqueFam->add_chil(indexID);
+                                        }
                                     } else if (tag == "DIV") {
 
                                     } else if (tag == "MARR") {
