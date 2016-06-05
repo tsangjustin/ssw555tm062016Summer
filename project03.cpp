@@ -122,8 +122,6 @@ int main() {
             parsed = parseLine (line);
             // While there is more line to read
             while (parsed.size() > 0) {
-                // Print the original line
-                outputFile << line << "\n";
                 //parsed = parseLine (line);
                 // Look for unique id tags
                 if (parsed.size() > 2) {
@@ -144,9 +142,6 @@ int main() {
                             }
                             IndiArr[indexID] = uniqueIndi;
                             while ( getline (gedFile, line) ) {
-                                // Print the original line
-                                outputFile << line << "\n";
-                                
                                 // Parse Line for details
                                 parsed = parseLine (line);
 								if (parsed.size() > 2) {
@@ -197,9 +192,6 @@ int main() {
                             }
                             FamArr[indexID] = uniqueFam;
                             while ( getline (gedFile, line) ) {
-                                // Print the original line
-                                outputFile << line << "\n";
-                                
                                 // Parse Line for details
                                 parsed = parseLine (line);
                                 level = parsed[0];
@@ -259,18 +251,23 @@ int main() {
                 if (IndiArr[currID] != NULL) {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
+                    outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
                 }
             }
             for (currID = 0; currID <= maxFam; ++currID) {
                 if (FamArr[currID] != NULL) {
                     cout << "FAM ID: " << FamArr[currID]->get_id() << "\n";
+                    outputFile << "FAM ID: " << FamArr[currID]->get_id() << "\n";
                     int memberID = FamArr[currID]->get_husb(); 
                     if (memberID > -1) {
                         cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+                        outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
                     }
                     memberID = FamArr[currID]->get_wife(); 
                     if (memberID > -1) {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+                        outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                     }
                 }
             }
