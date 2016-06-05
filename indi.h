@@ -9,16 +9,14 @@ class Fam;
 
 class Indi {
     private:
-        int uniqID;
         std::string name;
         bool sex;
         int* birth;
         int* death;
-        Fam * famc;
-        Fam * fams;
+        int famc;
+        std::vector< int > fams;
     public:
         Indi() {
-            uniqID = -1;
             name = "";
             sex = true;
             birth = new int[3];
@@ -40,10 +38,10 @@ class Indi {
             int arr[] = {d,m,y};
             this->death = arr;
         }
-        inline void set_famc (Fam* f){
+        inline void set_famc (int f){
             this->famc = f;
         }
-        inline void set_fams (Fam* f) {
+        inline void set_fams (int f) {
             this->fams = f;
         }
         
@@ -60,10 +58,10 @@ class Indi {
         inline int * get_death () {
             return this->death;
         }
-        inline Fam * get_famc () {
+        inline int get_famc () {
             return this->famc;
         }
-        inline Fam * get_fams () {
+        inline int get_fams () {
             return this->fams;
         }
 };
