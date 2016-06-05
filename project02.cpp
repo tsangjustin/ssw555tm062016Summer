@@ -103,12 +103,12 @@ int main() {
             // Ceate vector pointer to Indi and Fam
             vector< Indi* > IndiArr;
             vector< Fam* > FamArr;
-            IndiArr.reserve(5000);
-            FamArr.reserve(1000);
-            for (int i = 0; i < 5000; ++i) {
+            IndiArr.reserve(5001);
+            FamArr.reserve(1001);
+            for (int i = 0; i <= 5000; ++i) {
                 IndiArr[i] = NULL;
             }
-            for (int i = 0; i < 1000; ++i) {
+            for (int i = 0; i <= 1000; ++i) {
                 FamArr[i] = NULL;
             }
             // Begin reading line of ged file
@@ -243,9 +243,24 @@ int main() {
             // for (vector< Indi* >::iterator it = IndiArr.begin(); it != IndiArr.end(); ++it) {
             //     cout << (*it)->get_sex() << "\n";
             // }
-            for (int z = 0; z < maxIndi; ++z) {
-                if (IndiArr[z] != NULL) {
-                    cout << z << " " << IndiArr[z]->get_name() << "\n";
+            int currID;
+            for (currID = 0; currID <= maxIndi; ++currID) {
+                if (IndiArr[currID] != NULL) {
+                    cout << "Unqiue ID: " << IndiArr[currID]->get_id() << "\n";
+                    cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+                }
+            }
+            for (currID = 0; currID <= maxFam; ++currID) {
+                if (FamArr[currID] != NULL) {
+                    cout << "Family ID: " << FamArr[currID]->get_id() << "\n";
+                    int memberID = FamArr[currID]->get_husb(); 
+                    if (memberID > -1) {
+                        cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+                    }
+                    memberID = FamArr[currID]->get_wife(); 
+                    if (memberID > -1) {
+                        cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+                    }
                 }
             }
             outputFile.close();
