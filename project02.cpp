@@ -1,6 +1,6 @@
 /**
  * ssw555tm062016Summer
- * Harshit Singh, Justin Tsang, Weronika Zamlynny
+ * Harshit Singh, Justin Tsang, Weronika Zamlynny, Alexis Moore
  */
 
 // #ifndef INDI_H
@@ -91,12 +91,21 @@ int main() {
     vector< Indi* > IndiArr;
     vector< Fam* > FamArr;
     string line, level, tag;
+	bool newLvZero = false;
     
     if (gedFile.is_open()) {
         outputFile.open("output.txt", ios::out);
         if (outputFile.is_open()) {
             vector<string> parsed;
-            while ( getline (gedFile,line) ) {
+            while (!gedFile.eof()) {
+				if(!newLvZero) 
+				{
+					getline (gedFile, line);
+				}
+				else 
+				{
+					newLvZero = false;
+				}
                 // Print the original line
                 outputFile << line << "\n";
                 
@@ -112,16 +121,18 @@ int main() {
                     // Individual Unique ID
                     if (tag == "INDI") {
                         Indi* uniqueIndi =  new Indi();
-                        while ( getline (gedFile, line) ) {
+                       while ( getline (gedFile, line) ) {
+						 
                             // Print the original line
                             outputFile << line << "\n";
-                            
+							
                             // Parse Line for details
                             parsed = parseLine (line);
                             level = parsed[0];
                             tag = parsed[1];
                             // Indi has values
                             if (level == "0") {
+								newLvZero = true;
                                 IndiArr.push_back(uniqueIndi);
                                 break;
                             }
@@ -142,7 +153,7 @@ int main() {
                             } else {
 
                             }
-                        }
+						}
                     // Family Unique ID
                     } else {
 
