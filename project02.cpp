@@ -23,15 +23,21 @@ using namespace std;
  */
 vector<string> parseLine(string line) {
     vector<string> res;
-    int whitespaceIndex;
-    string paramToken;
-    for (int paramIndex = 0; paramIndex < 2; ++paramIndex) {
-        whitespaceIndex = line.find(' ');
-        paramToken = line.substr(0, whitespaceIndex);
-        line = line.substr(whitespaceIndex + 1);
-        res.push_back(paramToken);
+    string buffer = "";
+    int strLen = line.length();
+    for (int i = 0; i < strLen; i++) {
+        if (line[i] == ' ') {
+            // Add to vector and clear buffer
+            res.push_back(buffer);
+            buffer = "";
+        }
+        else if (line[i] != '\r') {
+            buffer += line[i];
+        }
     }
-    res.push_back(line);
+    if (buffer != "") {
+        res.push_back(buffer);
+    }
     return res;
 }
 
