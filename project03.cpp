@@ -1,6 +1,6 @@
 /**
  * ssw555tm062016Summer
- * Harshit Singh, Justin Tsang, Weronika Zamlynny
+ * Harshit Singh, Justin Tsang, Weronika Zamlynny, Alexis Moore
  */
 
 // #ifndef INDI_H
