@@ -15,17 +15,20 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
 
 // Array of valid tags
-string tags[] = {"INDI", "NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "FAM", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE", "HEAD", "TRLR"};
+string levelZeroTags[] = {"INDI", "FAM"};
+string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE", "HEAD", "TRLR"};
 
 /**
  * Splits the input string by spaces, removing '\r'
  */
 vector<string> parseLine(string line) {
     vector<string> res;
+    res.clear();
     string buffer = "";
     int strLen = line.length();
     for (int i = 0; i < strLen; i++) {
@@ -47,17 +50,43 @@ vector<string> parseLine(string line) {
 /**
  * Checks that the tag is in the list of valid tags for its level 
  */
-bool isValidTag(string &tag) {
+bool isValidTag(bool isLevelOneTag, string &tag) {
     bool isValidTag = false;
-    // Iterate through each element in tags array and check if there is match
-    for (const string &currTag : tags) {
-        if (currTag == tag) {
-            isValidTag = true;
+    // Check if user/fam info tag
+    if (isLevelOneTag) {
+        // Iterate through each element in tags array and check if there is match
+        for (const string &currTag : levelOneTags) {
+            if (currTag == tag) {
+                isValidTag = true;
+            }
+        }
+    // Check if unique ID Tag
+    } else {
+        // Iterate through each element in tags array and check if there is match
+        for (const string &currTag : levelZeroTags) {
+            if (currTag == tag) {
+                isValidTag = true;
+            }
         }
     }
     return isValidTag;
 }
- 
+
+int getDigit(string &id) {
+    // Regex to grab digit
+    string idNum = "";
+    int lenStr = id.length();
+    for (int letter = 0; letter < lenStr; ++letter) {
+        if (isdigit(id[letter])) {
+            idNum += id[letter];
+        }
+    }
+    istringstream buffer(idNum);
+    int idVal;
+    buffer >> idVal;
+    return idVal;
+}
+
 int main() {
     string fileNameInput;
     // Take input of ged file to take in as input
@@ -84,30 +113,35 @@ int main() {
             }
             // Begin reading line of ged file
             string line, level, tag;
+            int maxIndi = 0;
+            int maxFam = 0;
             vector<string> parsed;
             getline(gedFile, line);
             parsed = parseLine (line);
-            level = parsed[0];
-            tag = parsed[1];
+            // While there is more line to read
             while (parsed.size() > 0) {
+                // Print the original line
+                outputFile << line << "\n";
                 cout << line << "\n";
-                if (isValidTag(parsed[1]) || isValidTag(parsed[2])) {
-                    // Print the original line
-                    outputFile << line << "\n";
-                    
-                    // Parse Line for details
-                    // parsed = parseLine (line);
-                    // level = parsed[0];
-                    // tag = parsed[1];
-                    if (level == "0") {
-                        // If a unique Identifier
-                        if (tag[0] == '@') {
-                            tag = parsed[2];
-                        }
+                parsed = parseLine (line);
+                // Look for unique id tags
+                if (parsed.size() > 2) {
+                    level = parsed[0];
+                    tag = parsed[2];
+                    if ((level == "0") && (isValidTag(false, tag))) {
+                        // Parse Line for details
+                        // parsed = parseLine (line);
+                        // level = parsed[0];
+                        // tag = parsed[1];
                         // Individual Unique ID
                         if (tag == "INDI") {
                             Indi* uniqueIndi = new Indi();
-                            IndiArr.push_back(uniqueIndi);
+                            int indexID = getDigit(parsed[1]);
+                            if (indexID > maxIndi) {
+                                maxIndi = indexID;
+                            }
+                            cout << indexID << "\n";
+                            IndiArr[indexID] = uniqueIndi;
                             while ( getline (gedFile, line) ) {
                                 // Print the original line
                                 outputFile << line << "\n";
@@ -178,12 +212,16 @@ int main() {
                             }
                         } else {
                             getline(gedFile, line);
-                            parsed = parseLine (line);
-                            level = parsed[0];
-                            tag = parsed[1];
+							parsed = parseLine (line);
+							level = parsed[0];
+							tag = parsed[1];
                         }
-                    }
-                    
+                    } else {
+						getline(gedFile, line);
+							parsed = parseLine (line);
+							level = parsed[0];
+							tag = parsed[1];
+					}
                     // // Print the level number of each line
                     // outputFile << level << "\r\n";
                     // // Print the tag of each line and check if valid
@@ -202,10 +240,12 @@ int main() {
                 cout << z << " " << IndiArr[z]->get_name() << "\n";
             }
             outputFile.close();
+        } else {
+            cout << "Unable to open output file.";
         }
-        else cout << "Unable to open output file.";
         gedFile.close();
+    } else {
+        cout << "Unable to open GEDCOM file.";
     }
-    else cout << "Unable to open GEDCOM file.";
     return 0;
 }
