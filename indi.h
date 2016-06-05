@@ -21,6 +21,8 @@ class Indi {
             uniqueID_ = "";
             name_ = "";
             sex_ = true;
+            famc_.clear();
+            fams_.clear();
             birth_ = new int[3];
             death_ = new int[3];
         }

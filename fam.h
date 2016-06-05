@@ -20,6 +20,7 @@ public:
         uniqueID_ = "";
         husb_ = -1;
         wife_ = -1;
+        chil_.clear();
         marr_ = new int[3];
         div_ = new int[3];
     }

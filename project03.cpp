@@ -269,6 +269,11 @@ int main() {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                     }
+                    // vector<int> childArr = FamArr[currID]->get_chil();
+                    // for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
+                    //     cout << *it << " ";
+                    // }
+                    // cout << "\n";
                 }
             }
             outputFile.close();
