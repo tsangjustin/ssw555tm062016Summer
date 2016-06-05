@@ -123,7 +123,7 @@ int main() {
                 // Print the original line
                 outputFile << line << "\n";
                 cout << line << "\n";
-                parsed = parseLine (line);
+                //parsed = parseLine (line);
                 // Look for unique id tags
                 if (parsed.size() > 2) {
                     level = parsed[0];
@@ -136,11 +136,11 @@ int main() {
                         // Individual Unique ID
                         if (tag == "INDI") {
                             Indi* uniqueIndi = new Indi();
+                            uniqueIndi->set_id(parsed[1]);
                             int indexID = getDigit(parsed[1]);
                             if (indexID > maxIndi) {
                                 maxIndi = indexID;
                             }
-                            cout << indexID << "\n";
                             IndiArr[indexID] = uniqueIndi;
                             while ( getline (gedFile, line) ) {
                                 // Print the original line
@@ -148,39 +148,45 @@ int main() {
                                 
                                 // Parse Line for details
                                 parsed = parseLine (line);
-                                level = parsed[0];
-                                tag = parsed[1];
-                                // Indi has values
-                                if (level != "0") {
-                                    if (tag == "NAME") {
-                                        uniqueIndi->set_name(parsed[2] + parsed[3]);
-                                        cout << uniqueIndi->get_name() << "\n";
-                                    } else if (tag == "SEX") {
-                                        if (parsed[2] == "M") {
-                                            uniqueIndi->set_sex(true);
-                                        } else {
-                                            uniqueIndi->set_sex(false);
-                                        }
-                                    } else if (tag == "BIRT") {
+								if (parsed.size() > 2) {
+									level = parsed[0];
+									tag = parsed[1];
+									// Indi has values
+									if (level != "0") {
+										if (tag == "NAME") {
+											uniqueIndi->set_name(parsed[2] + parsed[3]);
+										} else if (tag == "SEX") {
+											if (parsed[2] == "M") {
+												uniqueIndi->set_sex(true);
+											} else {
+												uniqueIndi->set_sex(false);
+											}
+										} else if (tag == "BIRT") {
 
-                                    } else if (tag == "DEAT") {
+										} else if (tag == "DEAT") {
 
-                                    } else if (tag == "FAMS") {
+										} else if (tag == "FAMS") {
 
-                                    } else if (tag == "FAMC") {
+										} else if (tag == "FAMC") {
 
-                                    // Invalid tag
-                                    } else {
+										// Invalid tag
+										} else {
 
-                                    }
-                                } else {
-                                    break;
-                                }
+										}
+									} else {
+										break;
+									}
+								}
                             }
                         // Family Unique ID
                         } else if (tag == "FAM") {
                             Fam* uniqueFam = new Fam();
-                            // REGEX
+                            uniqueFam->set_id(parsed[1]);
+                            int indexID = getDigit(parsed[1]);
+                            if (indexID > maxFam) {
+                                maxFam = indexID;
+                            }
+                            FamArr[indexID] = uniqueFam;
                             FamArr.push_back(uniqueFam);
                             while ( getline (gedFile, line) ) {
                                 // Print the original line
@@ -193,11 +199,14 @@ int main() {
                                 // Indi has values
                                 if (level != "0") {
                                     if (tag == "HUSB") {
-                                        //uniqueFam->set_husb();
+                                        indexID = getDigit(parsed[2]);
+                                        uniqueFam->set_husb(indexID);
                                     } else if (tag == "WIFE") {
-                                        //uniqueFam->set_wife();
+                                        indexID = getDigit(parsed[2]);
+                                        uniqueFam->set_wife(indexID);
                                     } else if (tag == "CHIL") {
-                                        //uniqueFam->add_chil();
+                                        indexID = getDigit(parsed[2]);
+                                        uniqueFam->add_chil(indexID);
                                     } else if (tag == "DIV") {
 
                                     } else if (tag == "MARR") {
@@ -213,14 +222,14 @@ int main() {
                         } else {
                             getline(gedFile, line);
 							parsed = parseLine (line);
-							level = parsed[0];
-							tag = parsed[1];
+							// level = parsed[0];
+							// tag = parsed[1];
                         }
                     } else {
 						getline(gedFile, line);
-							parsed = parseLine (line);
-							level = parsed[0];
-							tag = parsed[1];
+						parsed = parseLine (line);
+						// level = parsed[0];
+						// tag = parsed[1];
 					}
                     // // Print the level number of each line
                     // outputFile << level << "\r\n";
@@ -229,15 +238,15 @@ int main() {
                 } else {
                     getline(gedFile, line);
                     parsed = parseLine (line);
-                    level = parsed[0];
-                    tag = parsed[1];
                 }
             }
             // for (vector< Indi* >::iterator it = IndiArr.begin(); it != IndiArr.end(); ++it) {
             //     cout << (*it)->get_sex() << "\n";
             // }
-            for (int z = 0; z < (int)IndiArr.size(); ++z) {
-                cout << z << " " << IndiArr[z]->get_name() << "\n";
+            for (int z = 0; z < maxIndi; ++z) {
+                if (IndiArr[z] != NULL) {
+                    cout << z << " " << IndiArr[z]->get_name() << "\n";
+                }
             }
             outputFile.close();
         } else {

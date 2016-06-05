@@ -3,11 +3,13 @@
 
 #include "indi.h"
 #include <vector>
+#include <string>
 
 class Indi;
 
 class Fam {
 private:
+    std::string uniqueID_;
     int * marr_;
     int husb_;
     int wife_;
@@ -15,10 +17,16 @@ private:
     int * div_;
 public:
     Fam() {
+        uniqueID_ = "";
+        husb_ = -1;
+        wife_ = -1;
         marr_ = new int[3];
         div_ = new int[3];
     }
     // Setters:
+    inline void set_id (std::string n) {
+        this->uniqueID_ = n;
+    }
     void set_marr (int d, int m, int y) {
         int arr[] = {d,m,y};
         this->marr_ = arr;
@@ -37,7 +45,10 @@ public:
         this->div_ = arr;
     }
     // Getters:
-    int * get_marr () {
+    inline std::string get_id () {
+        return this->uniqueID_;
+    }
+    inline int * get_marr () {
         return this->marr_;
     }
     inline int get_husb () {
