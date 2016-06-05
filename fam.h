@@ -32,10 +32,10 @@ public:
         int arr[] = {d,m,y};
         this->marr_ = arr;
     }
-    void set_husb (int h) {
+    inline void set_husb (int h) {
         this->husb_ = h;
     }
-    void set_wife (int w) {
+    inline void set_wife (int w) {
         this->wife_ = w;
     }
     // void set_chil (std::vector<Indi> c) {
@@ -61,11 +61,11 @@ public:
     std::vector< int > get_chil () {
         return this->chil_;
     }
-    int * get_div () {
+    inline int * get_div () {
         return this->div_;
     }
     // Other functions
-    void add_chil (int c) {
+    inline void add_chil (int c) {
         (this->chil_).push_back(c);
     }
 };

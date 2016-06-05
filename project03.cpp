@@ -89,6 +89,36 @@ int getDigit(string &id) {
     return idVal;
 }
 
+int convMonth(string &mth) {
+    int numMonth = 0;
+    if (mth == "JAN") {
+        numMonth = 1;
+    } else if (mth == "FEB") {
+        numMonth = 2;
+    } else if (mth == "MAR") {
+        numMonth = 3;
+    } else if (mth == "APR") {
+        numMonth = 4;
+    } else if (mth == "MAY") {
+        numMonth = 5;
+    } else if (mth == "JUN") {
+        numMonth = 6;
+    } else if (mth == "JUL") {
+        numMonth = 7;
+    } else if (mth == "AUG") {
+        numMonth = 8;
+    } else if (mth == "SEP") {
+        numMonth = 9;
+    } else if (mth == "OCT") {
+        numMonth = 10;
+    } else if (mth == "NOV") {
+        numMonth = 11;
+    } else if (mth == "DEC") {
+        numMonth = 12;
+    }
+    return numMonth;
+}
+
 int main() {
     string fileNameInput;
     // Take input of ged file to take in as input
@@ -141,10 +171,10 @@ int main() {
                                 maxIndi = indexID;
                             }
                             IndiArr[indexID] = uniqueIndi;
-                            while ( getline (gedFile, line) ) {
-                                // Parse Line for details
-                                parsed = parseLine (line);
-								if (parsed.size() > 2) {
+                            getline (gedFile, line);
+                            parsed = parseLine (line);
+                            while ( parsed.size() > 0 ) {
+								if (parsed.size() >= 2) {
 									level = parsed[0];
 									tag = parsed[1];
 									// Indi has values
@@ -162,9 +192,54 @@ int main() {
 												uniqueIndi->set_sex(false);
 											}
 										} else if (tag == "BIRT") {
-
+                                            getline (gedFile, line);
+                                            parsed = parseLine (line);
+                                            if (parsed.size() > 2) {
+                                                level = parsed[0];
+                                                tag = parsed[1];
+                                                if (level == "2" && tag == "DATE") {
+                                                    int month = 0;
+                                                    int day = 0;
+                                                    int year = 0;
+                                                    if (parsed.size() == 3) {
+                                                        istringstream buffer(parsed[2]);
+                                                        buffer >> year;
+                                                    } else if (parsed.size() == 5) {
+                                                        stringstream buffer;
+                                                        buffer << parsed[2] << " " << parsed[4];
+                                                        buffer >> day >> year;
+                                                        month = convMonth(parsed[3]);
+                                                    }
+                                                    //cout << day << " " << month << " " << year << "\n";
+                                                    uniqueIndi->set_birth(day, month, year);
+                                                } else {
+                                                    continue;
+                                                }
+                                            } else {
+                                                continue;
+                                            }
 										} else if (tag == "DEAT") {
-
+                                            getline (gedFile, line);
+                                            parsed = parseLine (line);
+                                            level = parsed[0];
+                                            tag = parsed[1];
+                                            cout << parsed.size() << "\n";
+                                            if (level == "2" && tag == "DATE") {
+                                                int month = 0;
+                                                int day = 0;
+                                                int year = 0;
+                                                if (parsed.size() == 3) {
+                                                    istringstream buffer(parsed[2]);
+                                                    buffer >> year;
+                                                } else if (parsed.size() == 5) {
+                                                    istringstream buffer(parsed[2] + " " + parsed[4]);
+                                                    buffer >> day >> year;
+                                                    month = convMonth(parsed[3]);
+                                                }
+                                                uniqueIndi->set_death(day, month, year);
+                                            } else {
+                                                continue;
+                                            }
 										} else if (tag == "FAMS") {
                                             if ((indexID = getDigit(parsed[2])) > -1) {
                                                 uniqueIndi->add_fams(indexID);
@@ -177,10 +252,15 @@ int main() {
 										} else {
 
 										}
+                                        getline (gedFile, line);
+                                        parsed = parseLine (line);
 									} else {
 										break;
 									}
-								}
+								} else {
+                                    getline (gedFile, line);
+                                    parsed = parseLine (line);
+                                }
                             }
                         // Family Unique ID
                         } else if (tag == "FAM") {

@@ -62,7 +62,7 @@ class Indi {
         inline bool get_sex () {
             return this->sex_;
         }
-        inline int * get_birth () {
+        inline int* get_birth () {
             return this->birth_;
         }
         inline int * get_death () {
