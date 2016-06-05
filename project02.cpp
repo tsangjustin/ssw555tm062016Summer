@@ -154,7 +154,11 @@ int main() {
 									// Indi has values
 									if ((level != "0") && (isValidTag(true, tag))) {
 										if (tag == "NAME") {
-											uniqueIndi->set_name(parsed[2] + parsed[3]);
+                                            string fullName = "";
+                                            for (int currName = 2; currName < parsed.size(); ++currName) {
+                                                fullName += parsed[currName] + " ";
+                                            }
+											uniqueIndi->set_name(fullName);
 										} else if (tag == "SEX") {
 											if (parsed[2] == "M") {
 												uniqueIndi->set_sex(true);
