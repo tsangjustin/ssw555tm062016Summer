@@ -66,11 +66,12 @@ int main() {
     fileNameInput += ".ged";
     ifstream gedFile (fileNameInput);
     ofstream outputFile;
-    int levelNumber = -1;
+    //int levelNumber = -1;
     
     if (gedFile.is_open()) {
         outputFile.open("output.txt", ios::out);
         if (outputFile.is_open()) {
+            // Ceate vector pointer to Indi and Fam
             vector< Indi* > IndiArr;
             vector< Fam* > FamArr;
             IndiArr.reserve(5000);
@@ -81,6 +82,7 @@ int main() {
             for (int i = 0; i < 1000; ++i) {
                 FamArr[i] = NULL;
             }
+            // Begin reading line of ged file
             string line, level, tag;
             vector<string> parsed;
             getline(gedFile, line);

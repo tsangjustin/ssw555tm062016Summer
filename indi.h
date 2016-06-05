@@ -41,8 +41,8 @@ class Indi {
         inline void set_famc (int f){
             this->famc = f;
         }
-        inline void set_fams (int f) {
-            this->fams = f;
+        inline void add_fams (int f) {
+            (this->fams).push_back(f);
         }
         
         // Getters:
@@ -61,7 +61,7 @@ class Indi {
         inline int get_famc () {
             return this->famc;
         }
-        inline int get_fams () {
+        inline std::vector< int > get_fams () {
             return this->fams;
         }
 };
