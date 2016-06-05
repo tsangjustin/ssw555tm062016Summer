@@ -9,62 +9,70 @@ class Fam;
 
 class Indi {
     private:
-        int uniqID;
-        std::string name;
-        bool sex;
-        int* birth;
-        int* death;
-        Fam * famc;
-        Fam * fams;
+        std::string uniqueID_;
+        std::string name_;
+        bool sex_;
+        int* birth_;
+        int* death_;
+        std::vector< int > famc_;
+        std::vector< int > fams_;
     public:
         Indi() {
-            uniqID = -1;
-            name = "";
-            sex = true;
-            birth = new int[3];
-            death = new int[3];
+            uniqueID_ = "";
+            name_ = "";
+            sex_ = true;
+            famc_.clear();
+            fams_.clear();
+            birth_ = new int[3];
+            death_ = new int[3];
         }
 
         // Setters:
+        inline void set_id (std::string n) {
+            this->uniqueID_ = n;
+        }
         inline void set_name (std::string n) {
-            this->name = n;
+            this->name_ = n;
         }
         inline void set_sex (bool s) {
-            this->sex = s;
+            this->sex_ = s;
         }
         void set_birth (int d, int m, int y) {
             int arr[] = {d,m,y};
-            this->birth = arr;
+            this->birth_ = arr;
         }
         void set_death (int d, int m, int y) {
             int arr[] = {d,m,y};
-            this->death = arr;
+            this->death_ = arr;
         }
-        inline void set_famc (Fam* f){
-            this->famc = f;
+        inline void add_famc (int f){
+            (this->famc_).push_back(f);
         }
-        inline void set_fams (Fam* f) {
-            this->fams = f;
+        inline void add_fams (int f) {
+            (this->fams_).push_back(f);
         }
         
         // Getters:
+        inline std::string get_id () {
+            return this->uniqueID_;
+        }
         inline std::string get_name () {
-            return this->name;
+            return this->name_;
         }
         inline bool get_sex () {
-            return this->sex;
+            return this->sex_;
         }
         inline int * get_birth () {
-            return this->birth;
+            return this->birth_;
         }
         inline int * get_death () {
-            return this->death;
+            return this->death_;
         }
-        inline Fam * get_famc () {
-            return this->famc;
+        inline std::vector< int > get_famc () {
+            return this->famc_;
         }
-        inline Fam * get_fams () {
-            return this->fams;
+        inline std::vector< int > get_fams () {
+            return this->fams_;
         }
 };
 
