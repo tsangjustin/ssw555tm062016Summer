@@ -124,7 +124,6 @@ int main() {
             while (parsed.size() > 0) {
                 // Print the original line
                 outputFile << line << "\n";
-                cout << line << "\n";
                 //parsed = parseLine (line);
                 // Look for unique id tags
                 if (parsed.size() > 2) {
