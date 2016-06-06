@@ -223,7 +223,7 @@ int main() {
                                             parsed = parseLine (line);
                                             level = parsed[0];
                                             tag = parsed[1];
-                                            cout << parsed.size() << "\n";
+                                            //cout << parsed.size() << "\n";
                                             if (level == "2" && tag == "DATE") {
                                                 int month = 0;
                                                 int day = 0;
@@ -271,7 +271,9 @@ int main() {
                                 maxFam = indexID;
                             }
                             FamArr[indexID] = uniqueFam;
-                            while ( getline (gedFile, line) ) {
+                            getline (gedFile, line);
+                            parsed = parseLine (line);
+                            while ( parsed.size() > 0 ) {
                                 // Parse Line for details
                                 parsed = parseLine (line);
                                 level = parsed[0];
@@ -300,6 +302,85 @@ int main() {
                                     }
                                 } else {
                                     break;
+                                }
+                                if (parsed.size() >= 2) {
+                                    level = parsed[0];
+                                    tag = parsed[1];
+                                    // Indi has values
+                                    if ((level != "0") && (isValidTag(true, tag))) {
+                                        if (tag == "HUSB") {
+                                            if ((indexID = getDigit(parsed[2])) > -1) {
+                                                uniqueFam->set_husb(indexID);
+                                            }
+                                        } else if (tag == "WIFE") {
+                                            if ((indexID = getDigit(parsed[2])) > -1) {
+                                                uniqueFam->set_wife(indexID);
+                                            }
+                                        } else if (tag == "CHIL") {
+                                            if ((indexID = getDigit(parsed[2])) > -1) {
+                                                uniqueFam->add_chil(indexID);
+                                            }
+                                        } else if (tag == "DIV") {
+                                            getline (gedFile, line);
+                                            parsed = parseLine (line);
+                                            if (parsed.size() > 2) {
+                                                level = parsed[0];
+                                                tag = parsed[1];
+                                                if (level == "2" && tag == "DATE") {
+                                                    int month = 0;
+                                                    int day = 0;
+                                                    int year = 0;
+                                                    if (parsed.size() == 3) {
+                                                        istringstream buffer(parsed[2]);
+                                                        buffer >> year;
+                                                    } else if (parsed.size() == 5) {
+                                                        stringstream buffer;
+                                                        buffer << parsed[2] << " " << parsed[4];
+                                                        buffer >> day >> year;
+                                                        month = convMonth(parsed[3]);
+                                                    }
+                                                    //cout << day << " " << month << " " << year << "\n";
+                                                    uniqueFam->set_div(day, month, year);
+                                                } else {
+                                                    continue;
+                                                }
+                                            } else {
+                                                continue;
+                                            }
+                                        } else if (tag == "MARR") {
+                                            getline (gedFile, line);
+                                            parsed = parseLine (line);
+                                            level = parsed[0];
+                                            tag = parsed[1];
+                                            //cout << parsed.size() << "\n";
+                                            if (level == "2" && tag == "DATE") {
+                                                int month = 0;
+                                                int day = 0;
+                                                int year = 0;
+                                                if (parsed.size() == 3) {
+                                                    istringstream buffer(parsed[2]);
+                                                    buffer >> year;
+                                                } else if (parsed.size() == 5) {
+                                                    istringstream buffer(parsed[2] + " " + parsed[4]);
+                                                    buffer >> day >> year;
+                                                    month = convMonth(parsed[3]);
+                                                }
+                                                uniqueFam->set_marr(day, month, year);
+                                            } else {
+                                                continue;
+                                            }
+                                        // Invalid tag
+                                        } else {
+
+                                        }
+                                        getline (gedFile, line);
+                                        parsed = parseLine (line);
+                                    } else {
+                                        break;
+                                    }
+                                } else {
+                                    getline (gedFile, line);
+                                    parsed = parseLine (line);
                                 }
                             }
                         } else {
