@@ -21,8 +21,8 @@ public:
         husb_ = -1;
         wife_ = -1;
         chil_.clear();
-        marr_ = new int[3];
-        div_ = new int[3];
+        marr_ = new int[3]();
+        div_ = new int[3]();
     }
     // Setters:
     inline void set_id (std::string n) {

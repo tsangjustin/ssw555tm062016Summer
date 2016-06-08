@@ -89,6 +89,42 @@ int getDigit(string &id) {
     return idVal;
 }
 
+int dateCompare(int *arrA, int *arrB) {
+	int retCmp = 0;
+	//Compares years
+	if(arrA[2] > arrB[2]) {
+		retCmp = -1;
+	}
+	else if(arrA[2] < arrB[2]) {
+		retCmp = 1;
+	}
+	else {
+		//compare months
+		if(arrA[1] > arrB[1]) {
+			retCmp = -1;
+		}
+		else if(arrA[1] > arrB[1]) {
+			retCmp = 1;
+		}
+		else {
+			//compare dates
+			if(arrA[0] > arrB[0]) {
+				retCmp = -1;
+			}
+			else if(arrA[0] > arrB[0]) {
+				retCmp = 1;
+			}
+			else {
+				retCmp = 0;
+			}
+		}	
+	}
+	return retCmp;
+	// Returns -1 if DateA is later than DateB
+	// Returns  1 if DateA is earlier than DateB
+	// Returns  0 if DateA is the same as DateB
+}
+
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -339,7 +375,7 @@ int main() {
                                                         buffer >> day >> year;
                                                         month = convMonth(parsed[3]);
                                                     }
-                                                    //cout << day << " " << month << " " << year << "\n";
+                                                    cout << day << " " << month << " " << year << "\n";
                                                     uniqueFam->set_div(day, month, year);
                                                 } else {
                                                     continue;
@@ -430,6 +466,26 @@ int main() {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                     }
+					vector<int> childArr = FamArr[currID]->get_chil();
+					for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
+						if(FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
+							if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
+								cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+							}
+							else
+							{
+								if(FamArr[currID]->get_div()[0] != 0 && FamArr[currID]->get_div()[1] != 0 && FamArr[currID]->get_div()[2] != 0) {
+									if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_div()) == -1) {
+										cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+									}
+								}
+							}
+						}
+						else {
+							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+						}	
+					}
+					
                     // vector<int> childArr = FamArr[currID]->get_chil();
                     // for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
                     //     cout << *it << " ";
