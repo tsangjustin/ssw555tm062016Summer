@@ -125,6 +125,29 @@ int dateCompare(int *arrA, int *arrB) {
 	// Returns  0 if DateA is the same as DateB
 }
 
+/*void checkWedlock(Fam *family, vector< Indi* > IndiArr)
+{
+	vector<int> childArr = family->get_chil();
+	for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
+		if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
+			if(dateCompare(IndiArr[*it]->get_birth(), family->get_marr()) == 1) {
+				cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+			}
+			else
+			{
+				if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
+					if(dateCompare(IndiArr[*it]->get_birth(), family->get_div()) == -1) {
+						cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+					}
+				}
+			}
+		}
+		else {
+			cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+		}
+	}
+}*/
+
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -375,7 +398,7 @@ int main() {
                                                         buffer >> day >> year;
                                                         month = convMonth(parsed[3]);
                                                     }
-                                                    cout << day << " " << month << " " << year << "\n";
+                                                    //cout << day << " " << month << " " << year << "\n";
                                                     uniqueFam->set_div(day, month, year);
                                                 } else {
                                                     continue;
@@ -466,7 +489,9 @@ int main() {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                     }
+					//checkWedlock(FamArr[currID], IndiArr);
 					vector<int> childArr = FamArr[currID]->get_chil();
+					int multBirthCount = 0;
 					for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
 						if(FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
 							if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
@@ -483,9 +508,25 @@ int main() {
 						}
 						else {
 							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-						}	
+						}
+						
+						for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
+							if(IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
+								if(dateCompare(IndiArr[*it]->get_birth(), IndiArr[*itCmp]->get_birth()) == 0) {
+									multBirthCount++;
+									if(multBirthCount > 5) {
+										break;
+									}
+								}
+							}
+							else {
+								multBirthCount = 0;
+							}
+						}
 					}
-					
+					if(multBirthCount > 5) {
+						cout << "Error: Too Many Children Born at Once. \n";
+					}
                     // vector<int> childArr = FamArr[currID]->get_chil();
                     // for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
                     //     cout << *it << " ";
