@@ -21,8 +21,7 @@ using namespace std;
 
 // Array of valid tags
 string levelZeroTags[] = {"INDI", "FAM"};
-string headerTags[] = {"HEAD", "TRLR"};
-string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE"};
+string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE", "HEAD", "TRLR"};
 
 /**
  * Splits the input string by spaces, removing '\r'
@@ -90,6 +89,71 @@ int getDigit(string &id) {
     return idVal;
 }
 
+int dateCompare(int *arrA, int *arrB) {
+	int retCmp = 0;
+	//Compares years
+	if(arrA[2] > arrB[2]) {
+		retCmp = -1;
+	}
+	else if(arrA[2] < arrB[2]) {
+		retCmp = 1;
+	}
+	else {
+		//compare months
+		if(arrA[1] > arrB[1]) {
+			retCmp = -1;
+		}
+		else if(arrA[1] > arrB[1]) {
+			retCmp = 1;
+		}
+		else {
+			//compare dates
+			if(arrA[0] > arrB[0]) {
+				retCmp = -1;
+			}
+			else if(arrA[0] > arrB[0]) {
+				retCmp = 1;
+			}
+			else {
+				retCmp = 0;
+			}
+		}	
+	}
+	return retCmp;
+	// Returns -1 if DateA is later than DateB
+	// Returns  1 if DateA is earlier than DateB
+	// Returns  0 if DateA is the same as DateB
+}
+
+/*void checkWedlock(Fam *family, vector< Indi* > IndiArr)
+{
+	vector<int> childArr = family->get_chil();
+	for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
+		if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
+			if(dateCompare(IndiArr[*it]->get_birth(), family->get_marr()) == 1) {
+				cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+			}
+			else
+			{
+				if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
+					if(dateCompare(IndiArr[*it]->get_birth(), family->get_div()) == -1) {
+						cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+					}
+				}
+			}
+		}
+		else {
+			cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+		}
+	}
+}*/
+
+bool validFamilyTree(vector< Indi* > &indiArr, vector< Fam* > &famArr) {
+    for (vector< Indi* >::iterator currIndi = indiArr.begin(); currIndi != indiArr.end(); ++currIndi) {
+
+    }
+}
+
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -120,21 +184,13 @@ int convMonth(string &mth) {
     return numMonth;
 }
 
-bool isUniqueID(vector< Indi* > &IndiArr, int &index) {
-    bool isUnique = false;
-    if (IndiArr[index] == NULL) {
-        isUnique = true;
-    }
-    return isUnique;
-}
-
 int main() {
     string fileNameInput;
     // Take input of ged file to take in as input
     cout << "Enter ged file name: ";
     getline(cin, fileNameInput);
     fileNameInput += ".ged";
-    ifstream gedFile(fileNameInput);
+    ifstream gedFile (fileNameInput);
     ofstream outputFile;
     //int levelNumber = -1;
     
@@ -152,19 +208,13 @@ int main() {
             for (int i = 0; i <= 1000; ++i) {
                 FamArr[i] = NULL;
             }
-
             // Begin reading line of ged file
             string line, level, tag;
             int maxIndi = 0;
             int maxFam = 0;
             vector<string> parsed;
-            // Find where HEAD starts
-            do {
-                getline(gedFile, line);
-                parsed = parseLine(line);
-			} while ((parsed.size() == 2) && (parsed[1] != "HEAD"));
             getline(gedFile, line);
-            parsed = parseLine(line);
+            parsed = parseLine (line);
             // While there is more line to read
             while (parsed.size() > 0) {
                 //parsed = parseLine (line);
@@ -173,6 +223,10 @@ int main() {
                     level = parsed[0];
                     tag = parsed[2];
                     if ((level == "0") && (isValidTag(false, tag))) {
+                        // Parse Line for details
+                        // parsed = parseLine (line);
+                        // level = parsed[0];
+                        // tag = parsed[1];
                         // Individual Unique ID
                         if (tag == "INDI") {
                             Indi* uniqueIndi = new Indi();
@@ -181,16 +235,10 @@ int main() {
                             if (indexID > maxIndi) {
                                 maxIndi = indexID;
                             }
-                            // Unique INDI id
-                            if (!isUniqueID(IndiArr, indexID)) {
-                                getline(gedFile, line);
-                                parsed = parseLine (line);
-                                continue;
-                            }
                             IndiArr[indexID] = uniqueIndi;
                             getline (gedFile, line);
                             parsed = parseLine (line);
-                            while (parsed.size() > 0) {
+                            while ( parsed.size() > 0 ) {
 								if (parsed.size() >= 2) {
 									level = parsed[0];
 									tag = parsed[1];
@@ -407,10 +455,22 @@ int main() {
                 if (IndiArr[currID] != NULL) {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
-                    int* birthDate = IndiArr[currID]->get_birth();
-                    cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    // Corresponding entries
+                    vector<int> family = IndiArr[currID]->get_famc();
+                    for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
+                        if (!(FamArr[*it]->checkChild(currID))) {
+                            cout << IndiArr[currID]->get_name() << " is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                        }
+                    }
+                    family = IndiArr[currID]->get_fams();
+                    for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
+                        //cout << FamArr[*it]->get_husb() << " " << FamArr[*it]->get_wife() << "\n";
+                        if ((!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
+                            cout << IndiArr[currID]->get_name() << " is not corresponding spouse in family " << FamArr[*it]->get_id() << "\n";
+                        }
+                    }
                 }
             }
             for (currID = 0; currID <= maxFam; ++currID) {
@@ -427,6 +487,44 @@ int main() {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                     }
+					//checkWedlock(FamArr[currID], IndiArr);
+					vector<int> childArr = FamArr[currID]->get_chil();
+					int multBirthCount = 0;
+					for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
+						if(FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
+							if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
+								cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+							}
+							else
+							{
+								if(FamArr[currID]->get_div()[0] != 0 && FamArr[currID]->get_div()[1] != 0 && FamArr[currID]->get_div()[2] != 0) {
+									if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_div()) == -1) {
+										cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+									}
+								}
+							}
+						}
+						else {
+							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+						}
+						
+						for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
+							if(IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
+								if(dateCompare(IndiArr[*it]->get_birth(), IndiArr[*itCmp]->get_birth()) == 0) {
+									multBirthCount++;
+									if(multBirthCount > 5) {
+										break;
+									}
+								}
+							}
+							else {
+								multBirthCount = 0;
+							}
+						}
+					}
+					if(multBirthCount > 5) {
+						cout << "Error: Too Many Children Born at Once. \n";
+					}
                     // vector<int> childArr = FamArr[currID]->get_chil();
                     // for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
                     //     cout << *it << " ";
@@ -442,7 +540,5 @@ int main() {
     } else {
         cout << "Unable to open GEDCOM file.";
     }
-    // Clear memory
-    //clearMemory();
     return 0;
 }
