@@ -148,12 +148,6 @@ int dateCompare(int *arrA, int *arrB) {
 	}
 }*/
 
-bool validFamilyTree(vector< Indi* > &indiArr, vector< Fam* > &famArr) {
-    for (vector< Indi* >::iterator currIndi = indiArr.begin(); currIndi != indiArr.end(); ++currIndi) {
-
-    }
-}
-
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -465,6 +459,8 @@ int main() {
                 if (IndiArr[currID] != NULL) {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    int* birthDate = IndiArr[currID]->get_birth();
+                    cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
                     // Corresponding entries
@@ -507,6 +503,35 @@ int main() {
                             cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
                         } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                             cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                        }
+                    }
+
+                    // Check unique family by spouse names and marriage date
+                    for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
+                        if (FamArr[restFamID] != NULL) {
+                            int currIndiID = FamArr[currID]->get_husb();
+                            int nextIndiID = FamArr[restFamID]->get_husb();
+                            if (currIndiID > 0 && nextIndiID > 0) {
+                                Indi* currIndi = IndiArr[currIndiID];
+                                Indi* nextIndi = IndiArr[nextIndiID];
+                                if (currIndi != NULL && nextIndi != NULL) {
+                                    if (currIndi->get_name() == nextIndi->get_name()) {
+                                        currIndiID = FamArr[currID]->get_wife();
+                                        nextIndiID = FamArr[restFamID]->get_wife();
+                                        if (currIndiID > 0 && nextIndiID > 0) {
+                                            Indi* currIndi = IndiArr[currIndiID];
+                                            Indi* nextIndi = IndiArr[nextIndiID];
+                                            if (currIndi != NULL && nextIndi != NULL) {
+                                                if (currIndi->get_name() == nextIndi->get_name()) {
+                                                    if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
+                                                        cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same spouse names and marriage dates\n";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 					//checkWedlock(FamArr[currID], IndiArr);
