@@ -68,6 +68,15 @@ public:
     inline void add_chil (int c) {
         (this->chil_).push_back(c);
     }
+
+    bool checkChild(int childID) {
+        for (std::vector<int>::iterator it = chil_.begin(); it != chil_.end(); ++it) {
+            if (*it == childID) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 #endif /* Fam */

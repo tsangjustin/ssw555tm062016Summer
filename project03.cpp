@@ -148,6 +148,12 @@ int dateCompare(int *arrA, int *arrB) {
 	}
 }*/
 
+bool validFamilyTree(vector< Indi* > &indiArr, vector< Fam* > &famArr) {
+    for (vector< Indi* >::iterator currIndi = indiArr.begin(); currIndi != indiArr.end(); ++currIndi) {
+
+    }
+}
+
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -335,33 +341,6 @@ int main() {
                             while ( parsed.size() > 0 ) {
                                 // Parse Line for details
                                 parsed = parseLine (line);
-                                level = parsed[0];
-                                tag = parsed[1];
-                                // Fam has values
-                                if ((level != "0") && (isValidTag(true, tag))) {
-                                    if (tag == "HUSB") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->set_husb(indexID);
-                                        }
-                                    } else if (tag == "WIFE") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->set_wife(indexID);
-                                        }
-                                    } else if (tag == "CHIL") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->add_chil(indexID);
-                                        }
-                                    } else if (tag == "DIV") {
-
-                                    } else if (tag == "MARR") {
-
-                                    // Invalid tag
-                                    } else {
-
-                                    }
-                                } else {
-                                    break;
-                                }
                                 if (parsed.size() >= 2) {
                                     level = parsed[0];
                                     tag = parsed[1];
@@ -409,22 +388,27 @@ int main() {
                                         } else if (tag == "MARR") {
                                             getline (gedFile, line);
                                             parsed = parseLine (line);
-                                            level = parsed[0];
-                                            tag = parsed[1];
-                                            //cout << parsed.size() << "\n";
-                                            if (level == "2" && tag == "DATE") {
-                                                int month = 0;
-                                                int day = 0;
-                                                int year = 0;
-                                                if (parsed.size() == 3) {
-                                                    istringstream buffer(parsed[2]);
-                                                    buffer >> year;
-                                                } else if (parsed.size() == 5) {
-                                                    istringstream buffer(parsed[2] + " " + parsed[4]);
-                                                    buffer >> day >> year;
-                                                    month = convMonth(parsed[3]);
+                                            if (parsed.size() > 2) {
+                                                level = parsed[0];
+                                                tag = parsed[1];
+                                                if (level == "2" && tag == "DATE") {
+                                                    int month = 0;
+                                                    int day = 0;
+                                                    int year = 0;
+                                                    if (parsed.size() == 3) {
+                                                        istringstream buffer(parsed[2]);
+                                                        buffer >> year;
+                                                    } else if (parsed.size() == 5) {
+                                                        stringstream buffer;
+                                                        buffer << parsed[2] << " " << parsed[4];
+                                                        buffer >> day >> year;
+                                                        month = convMonth(parsed[3]);
+                                                    }
+                                                    //cout << day << " " << month << " " << year << "\n";
+                                                    uniqueFam->set_marr(day, month, year);
+                                                } else {
+                                                    continue;
                                                 }
-                                                uniqueFam->set_marr(day, month, year);
                                             } else {
                                                 continue;
                                             }
@@ -473,6 +457,20 @@ int main() {
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    // Corresponding entries
+                    vector<int> family = IndiArr[currID]->get_famc();
+                    for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
+                        if (!(FamArr[*it]->checkChild(currID))) {
+                            cout << IndiArr[currID]->get_name() << " is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                        }
+                    }
+                    family = IndiArr[currID]->get_fams();
+                    for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
+                        //cout << FamArr[*it]->get_husb() << " " << FamArr[*it]->get_wife() << "\n";
+                        if ((!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
+                            cout << IndiArr[currID]->get_name() << " is not corresponding spouse in family " << FamArr[*it]->get_id() << "\n";
+                        }
+                    }
                 }
             }
             for (currID = 0; currID <= maxFam; ++currID) {
