@@ -21,7 +21,8 @@ using namespace std;
 
 // Array of valid tags
 string levelZeroTags[] = {"INDI", "FAM"};
-string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE", "HEAD", "TRLR"};
+string headerTags[] = {"HEAD", "TRLR"};
+string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE"};
 
 /**
  * Splits the input string by spaces, removing '\r'
@@ -119,13 +120,21 @@ int convMonth(string &mth) {
     return numMonth;
 }
 
+bool isUniqueID(vector< Indi* > &IndiArr, int &index) {
+    bool isUnique = false;
+    if (IndiArr[index] == NULL) {
+        isUnique = true;
+    }
+    return isUnique;
+}
+
 int main() {
     string fileNameInput;
     // Take input of ged file to take in as input
     cout << "Enter ged file name: ";
     getline(cin, fileNameInput);
     fileNameInput += ".ged";
-    ifstream gedFile (fileNameInput);
+    ifstream gedFile(fileNameInput);
     ofstream outputFile;
     //int levelNumber = -1;
     
@@ -143,13 +152,19 @@ int main() {
             for (int i = 0; i <= 1000; ++i) {
                 FamArr[i] = NULL;
             }
+
             // Begin reading line of ged file
             string line, level, tag;
             int maxIndi = 0;
             int maxFam = 0;
             vector<string> parsed;
+            // Find where HEAD starts
+            do {
+                getline(gedFile, line);
+                parsed = parseLine(line);
+			} while ((parsed.size() == 2) && (parsed[1] != "HEAD"));
             getline(gedFile, line);
-            parsed = parseLine (line);
+            parsed = parseLine(line);
             // While there is more line to read
             while (parsed.size() > 0) {
                 //parsed = parseLine (line);
@@ -158,10 +173,6 @@ int main() {
                     level = parsed[0];
                     tag = parsed[2];
                     if ((level == "0") && (isValidTag(false, tag))) {
-                        // Parse Line for details
-                        // parsed = parseLine (line);
-                        // level = parsed[0];
-                        // tag = parsed[1];
                         // Individual Unique ID
                         if (tag == "INDI") {
                             Indi* uniqueIndi = new Indi();
@@ -170,10 +181,16 @@ int main() {
                             if (indexID > maxIndi) {
                                 maxIndi = indexID;
                             }
+                            // Unique INDI id
+                            if (!isUniqueID(IndiArr, indexID)) {
+                                getline(gedFile, line);
+                                parsed = parseLine (line);
+                                continue;
+                            }
                             IndiArr[indexID] = uniqueIndi;
                             getline (gedFile, line);
                             parsed = parseLine (line);
-                            while ( parsed.size() > 0 ) {
+                            while (parsed.size() > 0) {
 								if (parsed.size() >= 2) {
 									level = parsed[0];
 									tag = parsed[1];
@@ -276,33 +293,6 @@ int main() {
                             while ( parsed.size() > 0 ) {
                                 // Parse Line for details
                                 parsed = parseLine (line);
-                                level = parsed[0];
-                                tag = parsed[1];
-                                // Fam has values
-                                if ((level != "0") && (isValidTag(true, tag))) {
-                                    if (tag == "HUSB") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->set_husb(indexID);
-                                        }
-                                    } else if (tag == "WIFE") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->set_wife(indexID);
-                                        }
-                                    } else if (tag == "CHIL") {
-                                        if ((indexID = getDigit(parsed[2])) > -1) {
-                                            uniqueFam->add_chil(indexID);
-                                        }
-                                    } else if (tag == "DIV") {
-
-                                    } else if (tag == "MARR") {
-
-                                    // Invalid tag
-                                    } else {
-
-                                    }
-                                } else {
-                                    break;
-                                }
                                 if (parsed.size() >= 2) {
                                     level = parsed[0];
                                     tag = parsed[1];
@@ -350,22 +340,27 @@ int main() {
                                         } else if (tag == "MARR") {
                                             getline (gedFile, line);
                                             parsed = parseLine (line);
-                                            level = parsed[0];
-                                            tag = parsed[1];
-                                            //cout << parsed.size() << "\n";
-                                            if (level == "2" && tag == "DATE") {
-                                                int month = 0;
-                                                int day = 0;
-                                                int year = 0;
-                                                if (parsed.size() == 3) {
-                                                    istringstream buffer(parsed[2]);
-                                                    buffer >> year;
-                                                } else if (parsed.size() == 5) {
-                                                    istringstream buffer(parsed[2] + " " + parsed[4]);
-                                                    buffer >> day >> year;
-                                                    month = convMonth(parsed[3]);
+                                            if (parsed.size() > 2) {
+                                                level = parsed[0];
+                                                tag = parsed[1];
+                                                if (level == "2" && tag == "DATE") {
+                                                    int month = 0;
+                                                    int day = 0;
+                                                    int year = 0;
+                                                    if (parsed.size() == 3) {
+                                                        istringstream buffer(parsed[2]);
+                                                        buffer >> year;
+                                                    } else if (parsed.size() == 5) {
+                                                        stringstream buffer;
+                                                        buffer << parsed[2] << " " << parsed[4];
+                                                        buffer >> day >> year;
+                                                        month = convMonth(parsed[3]);
+                                                    }
+                                                    //cout << day << " " << month << " " << year << "\n";
+                                                    uniqueFam->set_marr(day, month, year);
+                                                } else {
+                                                    continue;
                                                 }
-                                                uniqueFam->set_marr(day, month, year);
                                             } else {
                                                 continue;
                                             }
@@ -412,6 +407,8 @@ int main() {
                 if (IndiArr[currID] != NULL) {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    int* birthDate = IndiArr[currID]->get_birth();
+                    cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
                 }
@@ -445,5 +442,7 @@ int main() {
     } else {
         cout << "Unable to open GEDCOM file.";
     }
+    // Clear memory
+    //clearMemory();
     return 0;
 }
