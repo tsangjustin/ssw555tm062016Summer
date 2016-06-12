@@ -78,6 +78,24 @@ class Indi {
         inline std::vector< int > get_fams () {
             return this->fams_;
         }
+
+        bool checkFamC(int famID) {
+            for (std::vector<int>::iterator it = famc_.begin(); it != famc_.end(); ++it) {
+                if (*it == famID) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool checkFamS(int famID) {
+            for (std::vector<int>::iterator it = fams_.begin(); it != fams_.end(); ++it) {
+                if (*it == famID) {
+                    return true;
+                }
+            }
+            return false;
+        }
 };
 
 #endif /* Indi */

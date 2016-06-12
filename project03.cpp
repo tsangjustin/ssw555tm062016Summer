@@ -481,11 +481,23 @@ int main() {
                     if (memberID > -1) {
                         cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+                        // Check if spuse has corresponding Indi entry
+                        if (IndiArr[memberID] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
+                        } else if (!(IndiArr[memberID]->checkFamS(currID))) {
+                            cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                        }
                     }
                     memberID = FamArr[currID]->get_wife(); 
                     if (memberID > -1) {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+                        // Check if spuse has corresponding Indi entry
+                        if (IndiArr[memberID] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
+                        } else if (!(IndiArr[memberID]->checkFamS(currID))) {
+                            cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                        }
                     }
 					//checkWedlock(FamArr[currID], IndiArr);
 					vector<int> childArr = FamArr[currID]->get_chil();
@@ -507,6 +519,12 @@ int main() {
 						else {
 							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
 						}
+                        // Check if corresponding entry for child in Indi entry
+                        if (IndiArr[*it] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
+                        } else if (!(IndiArr[*it]->checkFamC(currID))) {
+                            cout << IndiArr[*it]->get_name() << " is not corresponding child in family " << FamArr[currID]->get_id() << "\n";
+                        }
 						
 						for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
 							if(IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
