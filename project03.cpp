@@ -148,12 +148,6 @@ int dateCompare(int *arrA, int *arrB) {
 	}
 }*/
 
-bool validFamilyTree(vector< Indi* > &indiArr, vector< Fam* > &famArr) {
-    for (vector< Indi* >::iterator currIndi = indiArr.begin(); currIndi != indiArr.end(); ++currIndi) {
-
-    }
-}
-
 int convMonth(string &mth) {
     int numMonth = 0;
     if (mth == "JAN") {
@@ -229,16 +223,26 @@ int main() {
                         // tag = parsed[1];
                         // Individual Unique ID
                         if (tag == "INDI") {
-                            Indi* uniqueIndi = new Indi();
-                            uniqueIndi->set_id(parsed[1]);
                             int indexID = getDigit(parsed[1]);
+                            if (IndiArr[indexID] != NULL) {
+                                cout << parsed[1] << " already exists\n";
+                                getline(gedFile, line);
+                                parsed = parseLine(line);
+                                while (parsed[0] != "0") {
+                                    getline(gedFile, line);
+                                    parsed = parseLine (line);
+                                }
+                                continue;
+                            }
                             if (indexID > maxIndi) {
                                 maxIndi = indexID;
                             }
+                            Indi* uniqueIndi = new Indi();
+                            uniqueIndi->set_id(parsed[1]);
                             IndiArr[indexID] = uniqueIndi;
                             getline (gedFile, line);
                             parsed = parseLine (line);
-                            while ( parsed.size() > 0 ) {
+                            while (parsed.size() > 0) {
 								if (parsed.size() >= 2) {
 									level = parsed[0];
 									tag = parsed[1];
@@ -455,19 +459,21 @@ int main() {
                 if (IndiArr[currID] != NULL) {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+                    int* birthDate = IndiArr[currID]->get_birth();
+                    cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
                     // Corresponding entries
                     vector<int> family = IndiArr[currID]->get_famc();
                     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
-                        if (!(FamArr[*it]->checkChild(currID))) {
+                        if ((FamArr[*it] == NULL) || (!(FamArr[*it]->checkChild(currID)))) {
                             cout << IndiArr[currID]->get_name() << " is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
                         }
                     }
                     family = IndiArr[currID]->get_fams();
                     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
                         //cout << FamArr[*it]->get_husb() << " " << FamArr[*it]->get_wife() << "\n";
-                        if ((!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
+                        if ((FamArr[*it] == NULL) || (!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
                             cout << IndiArr[currID]->get_name() << " is not corresponding spouse in family " << FamArr[*it]->get_id() << "\n";
                         }
                     }
@@ -478,51 +484,110 @@ int main() {
                     cout << "FAM ID: " << FamArr[currID]->get_id() << "\n";
                     outputFile << "FAM ID: " << FamArr[currID]->get_id() << "\n";
                     int memberID = FamArr[currID]->get_husb(); 
-                    if (memberID > -1) {
+                    if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                         cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+                        // Check if spuse has corresponding Indi entry
+                        if (IndiArr[memberID] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
+                        } else if (!(IndiArr[memberID]->checkFamS(currID))) {
+                            cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                        }
                     }
                     memberID = FamArr[currID]->get_wife(); 
-                    if (memberID > -1) {
+                    if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                         cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                         outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+                        // Check if spuse has corresponding Indi entry
+                        if (IndiArr[memberID] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
+                        } else if (!(IndiArr[memberID]->checkFamS(currID))) {
+                            cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                        }
+                    }
+                    // Check unique family by spouse names and marriage date
+                    for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
+                        if (FamArr[restFamID] != NULL) {
+                            int currIndiID = FamArr[currID]->get_husb();
+                            int nextIndiID = FamArr[restFamID]->get_husb();
+                            if (currIndiID == -1 && nextIndiID == -1) {
+                                currIndiID = FamArr[currID]->get_wife();
+                                nextIndiID = FamArr[restFamID]->get_wife();
+                                if (currIndiID == -1 && nextIndiID == -1) {
+                                    if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
+                                        cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same marriage dates\n";
+                                    }
+                                }
+                            }
+                            else if (currIndiID > 0 && nextIndiID > 0) {
+                                Indi* currIndi = IndiArr[currIndiID];
+                                Indi* nextIndi = IndiArr[nextIndiID];
+                                if (currIndi != NULL && nextIndi != NULL) {
+                                    if (currIndi->get_name() == nextIndi->get_name()) {
+                                        currIndiID = FamArr[currID]->get_wife();
+                                        nextIndiID = FamArr[restFamID]->get_wife();
+                                        if (currIndiID > 0 && nextIndiID > 0) {
+                                            Indi* currIndi = IndiArr[currIndiID];
+                                            Indi* nextIndi = IndiArr[nextIndiID];
+                                            if (currIndi != NULL && nextIndi != NULL) {
+                                                if (currIndi->get_name() == nextIndi->get_name()) {
+                                                    if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
+                                                        cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same spouse names and marriage dates\n";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 					//checkWedlock(FamArr[currID], IndiArr);
 					vector<int> childArr = FamArr[currID]->get_chil();
 					int multBirthCount = 0;
 					for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
-						if(FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
-							if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
-								cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-							}
-							else
-							{
-								if(FamArr[currID]->get_div()[0] != 0 && FamArr[currID]->get_div()[1] != 0 && FamArr[currID]->get_div()[2] != 0) {
-									if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_div()) == -1) {
-										cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-									}
-								}
-							}
-						}
-						else {
-							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-						}
+                        if (IndiArr[*it] != NULL) {
+                            if (FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
+    							if (dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
+    								cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+    							}
+    							else
+    							{
+    								if(FamArr[currID]->get_div()[0] != 0 && FamArr[currID]->get_div()[1] != 0 && FamArr[currID]->get_div()[2] != 0) {
+    									if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_div()) == -1) {
+    										cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+    									}
+    								}
+    							}
+    						}
+    						else {
+    							cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
+    						}
+                        }
+                        // Check if corresponding entry for child in Indi entry
+                        if (IndiArr[*it] == NULL) {
+                            cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
+                        } else if (!(IndiArr[*it]->checkFamC(currID))) {
+                            cout << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() << "\n";
+                        }
 						
 						for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
-							if(IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
-								if(dateCompare(IndiArr[*it]->get_birth(), IndiArr[*itCmp]->get_birth()) == 0) {
-									multBirthCount++;
-									if(multBirthCount > 5) {
-										break;
-									}
-								}
-							}
-							else {
-								multBirthCount = 0;
-							}
+							if ((IndiArr[*it] != NULL) && (IndiArr[*itCmp] != NULL)) {
+                                if (IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
+    								if (dateCompare(IndiArr[*it]->get_birth(), IndiArr[*itCmp]->get_birth()) == 0) {
+    									multBirthCount++;
+    									if (multBirthCount > 5) {
+    										break;
+    									}
+    								}
+    							}
+    							else {
+    								multBirthCount = 0;
+    							}
+                            }
 						}
 					}
-					if(multBirthCount > 5) {
+					if (multBirthCount > 5) {
 						cout << "Error: Too Many Children Born at Once. \n";
 					}
                     // vector<int> childArr = FamArr[currID]->get_chil();

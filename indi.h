@@ -12,8 +12,8 @@ class Indi {
         std::string uniqueID_;
         std::string name_;
         bool sex_;
-        int* birth_;
-        int* death_;
+        int birth_[3];
+        int death_[3];
         std::vector< int > famc_;
         std::vector< int > fams_;
     public:
@@ -23,8 +23,10 @@ class Indi {
             sex_ = true;
             famc_.clear();
             fams_.clear();
-            birth_ = new int[3];
-            death_ = new int[3];
+            for (int i = 0; i < 3; ++i) {
+                birth_[i] = 0;
+                death_[i] = 0;
+            }
         }
 
         // Setters:
@@ -38,12 +40,14 @@ class Indi {
             this->sex_ = s;
         }
         void set_birth (int d, int m, int y) {
-            int arr[] = {d,m,y};
-            this->birth_ = arr;
+            this->birth_[0] = d;
+            this->birth_[1] = m;
+            this->birth_[2] = y;
         }
         void set_death (int d, int m, int y) {
-            int arr[] = {d,m,y};
-            this->death_ = arr;
+            this->death_[0] = d;
+            this->death_[1] = m;
+            this->death_[2] = y;
         }
         inline void add_famc (int f){
             (this->famc_).push_back(f);
@@ -65,7 +69,7 @@ class Indi {
         inline int* get_birth () {
             return this->birth_;
         }
-        inline int * get_death () {
+        inline int* get_death () {
             return this->death_;
         }
         inline std::vector< int > get_famc () {
@@ -73,6 +77,24 @@ class Indi {
         }
         inline std::vector< int > get_fams () {
             return this->fams_;
+        }
+
+        bool checkFamC(int famID) {
+            for (std::vector<int>::iterator it = famc_.begin(); it != famc_.end(); ++it) {
+                if (*it == famID) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool checkFamS(int famID) {
+            for (std::vector<int>::iterator it = fams_.begin(); it != fams_.end(); ++it) {
+                if (*it == famID) {
+                    return true;
+                }
+            }
+            return false;
         }
 };
 
