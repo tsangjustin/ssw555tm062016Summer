@@ -23,6 +23,9 @@ using namespace std;
 string levelZeroTags[] = {"INDI", "FAM"};
 string levelOneTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS", "MARR", "HUSB", "WIFE", "CHIL", "DIV", "DATE", "HEAD", "TRLR"};
 
+vector< Indi* > IndiArr;
+vector< Fam* > FamArr;
+
 /**
  * Splits the input string by spaces, removing '\r'
  */
@@ -91,6 +94,7 @@ int getDigit(string &id) {
 
 int dateCompare(int *arrA, int *arrB) {
 	int retCmp = 0;
+    // TODO YEAR 0
 	//Compares years
 	if(arrA[2] > arrB[2]) {
 		retCmp = -1;
@@ -123,6 +127,70 @@ int dateCompare(int *arrA, int *arrB) {
 	// Returns -1 if DateA is later than DateB
 	// Returns  1 if DateA is earlier than DateB
 	// Returns  0 if DateA is the same as DateB
+}
+
+/**
+* Checks if an individual has a valid birth date.
+*/
+bool checkValidBirth(Indi &indi) {
+    int* birth = indi.get_birth();
+
+    // Individual was born before they died
+    int* death = indi.get_death();
+    if (dateCompare(birth, death) < 0) {
+        cout << "Error: Individual cannot die before they are born.\n";
+        return false;
+    }
+
+    // Individual was born before their parents died
+    vector <int> famc = indi.get_famc();
+    for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
+        Fam *fam = FamArr[*f];
+
+        // Getting parents
+        Indi* mom = IndiArr[fam->get_wife()];
+        Indi* dad = IndiArr[fam->get_husb()];
+
+        int* momDeath = mom->get_death();
+        int* dadDeath = dad->get_death();
+
+        // Cannot be born after death of mother
+        if (dateCompare(birth, momDeath) < 0) {
+            cout << "Error: Individual cannot be born after the death of mother.\n";
+            return false;
+        }
+        // Cannot be born 9 months after death of father
+        int* dDeath = new int[3];
+        for (int i = 0; i < 3; i++) {
+            //Creating a deep copy of dadDeath
+            dDeath[i] = dadDeath[0];
+        }
+        int monthOffset = 9;
+        if (dDeath[1] + monthOffset <= 12) {
+            dDeath[1] += monthOffset;
+        } else {
+            monthOffset -= (12 - dDeath[1]);
+            dDeath[1] = monthOffset;
+            dDeath[2] += 1;
+        }
+        if (dateCompare(birth, dDeath) < 0) {
+            cout << "Error: Individual cannot be born 9 months after the death of father.\n";
+            return false;
+        }
+    }
+
+    // Individual was born before they got married
+    vector <int> fams = indi.get_fams();
+    for (std::vector<int>::iterator f = fams.begin(); f != fams.end(); ++f) {
+        Fam* fam = FamArr[*f];
+
+        int* marr = fam->get_marr();
+        if (dateCompare(birth, marr) < 0){
+            cout << "Error: Individual cannot be married before birth.\n";
+            return false;
+        }
+    }
+    return true;
 }
 
 /*void checkWedlock(Fam *family, vector< Indi* > IndiArr)
@@ -192,8 +260,7 @@ int main() {
         outputFile.open("output.txt", ios::out);
         if (outputFile.is_open()) {
             // Ceate vector pointer to Indi and Fam
-            vector< Indi* > IndiArr;
-            vector< Fam* > FamArr;
+            
             IndiArr.reserve(5001);
             FamArr.reserve(1001);
             for (int i = 0; i <= 5000; ++i) {
