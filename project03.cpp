@@ -497,6 +497,16 @@ int main() {
                             Fam* uniqueFam = new Fam();
                             uniqueFam->set_id(parsed[1]);
                             int indexID = getDigit(parsed[1]);
+                            if (FamArr[indexID] != NULL) {
+                                cout << parsed[1] << " already exists\n";
+                                getline(gedFile, line);
+                                parsed = parseLine(line);
+                                while (parsed[0] != "0") {
+                                    getline(gedFile, line);
+                                    parsed = parseLine (line);
+                                }
+                                continue;
+                            }
                             if (indexID > maxFam) {
                                 maxFam = indexID;
                             }
