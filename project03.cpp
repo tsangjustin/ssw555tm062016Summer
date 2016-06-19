@@ -95,8 +95,12 @@ int getDigit(string &id) {
 int dateCompare(int *arrA, int *arrB) {
 	int retCmp = 0;
     // TODO YEAR 0
-	//Compares years
-	if(arrA[2] > arrB[2]) {
+    //Compare years
+    if (arrA[2] == 0 || arrB[2] == 0) {
+        // Check if a date was actually provided
+        retCmp = 0;
+    }
+	else if(arrA[2] > arrB[2]) {
 		retCmp = -1;
 	}
 	else if(arrA[2] < arrB[2]) {
@@ -127,6 +131,7 @@ int dateCompare(int *arrA, int *arrB) {
 	// Returns -1 if DateA is later than DateB
 	// Returns  1 if DateA is earlier than DateB
 	// Returns  0 if DateA is the same as DateB
+    // Returns  0 if either DateA or Date B is missing
 }
 
 /**
@@ -147,35 +152,40 @@ bool checkValidBirth(Indi &indi) {
     for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
         Fam *fam = FamArr[*f];
 
-        // Getting parents
-        Indi* mom = IndiArr[fam->get_wife()];
-        Indi* dad = IndiArr[fam->get_husb()];
-
-        int* momDeath = mom->get_death();
-        int* dadDeath = dad->get_death();
-
         // Cannot be born after death of mother
-        if (dateCompare(birth, momDeath) < 0) {
-            cout << "Error: Individual cannot be born after the death of mother.\n";
-            return false;
+        if (fam->get_wife() != -1) { //Check if mom on record
+            Indi* mom = IndiArr[fam->get_wife()];
+
+            int* momDeath = mom->get_death();
+            if (dateCompare(birth, momDeath) < 0) {
+                cout << "Error: Individual cannot be born after the death of mother.\n";
+                return false;
+            }
         }
+
         // Cannot be born 9 months after death of father
-        int* dDeath = new int[3];
-        for (int i = 0; i < 3; i++) {
-            //Creating a deep copy of dadDeath
-            dDeath[i] = dadDeath[0];
-        }
-        int monthOffset = 9;
-        if (dDeath[1] + monthOffset <= 12) {
-            dDeath[1] += monthOffset;
-        } else {
-            monthOffset -= (12 - dDeath[1]);
-            dDeath[1] = monthOffset;
-            dDeath[2] += 1;
-        }
-        if (dateCompare(birth, dDeath) < 0) {
-            cout << "Error: Individual cannot be born 9 months after the death of father.\n";
-            return false;
+        if (fam->get_husb() != -1) { //Check if dad on record
+            Indi* dad = IndiArr[fam->get_husb()];
+
+            int* dadDeath = dad->get_death();
+            int* dDeath = new int[3];
+            for (int i = 0; i < 3; i++) {
+                //Creating a deep copy of dadDeath
+                dDeath[i] = dadDeath[i];
+                cout << dDeath[i] << endl;
+            }
+            int monthOffset = 9;
+            if (dDeath[1] + monthOffset <= 12) {
+                dDeath[1] += monthOffset;
+            } else {
+                monthOffset -= (12 - dDeath[1]);
+                dDeath[1] = monthOffset;
+                dDeath[2] += 1;
+            }
+            if (dateCompare(birth, dDeath) < 0) {
+                cout << "Error: Individual cannot be born 9 months after the death of father.\n";
+                return false;
+            }
         }
     }
 
@@ -185,11 +195,16 @@ bool checkValidBirth(Indi &indi) {
         Fam* fam = FamArr[*f];
 
         int* marr = fam->get_marr();
-        if (dateCompare(birth, marr) < 0){
-            cout << "Error: Individual cannot be married before birth.\n";
-            return false;
+        // Check that individual got married
+        if (marr != NULL) {
+            if (dateCompare(birth, marr) < 0){
+                cout << "marr: " << marr[0] <<"-" <<marr[1]<<"-"<<marr[2]<<"\n";
+                cout << "Error: Individual cannot be married before birth.\n";
+                return false;
+            }
         }
     }
+
     return true;
 }
 
@@ -528,6 +543,8 @@ int main() {
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
                     int* birthDate = IndiArr[currID]->get_birth();
                     cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
+                    // Check Valid Birth
+                    checkValidBirth(*IndiArr[currID]);
                     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
                     // Corresponding entries
