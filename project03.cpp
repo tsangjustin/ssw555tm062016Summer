@@ -241,8 +241,8 @@ void getCurrentDate() {
 	struct tm *localTime;
 	time(&currentTime);
 	localTime = localtime(&currentTime);
-	currDate[0] = localTime->tm_mon+1;
-	currDate[1] = localTime->tm_mday;
+	currDate[0] = localTime->tm_mday;
+	currDate[1] = localTime->tm_mon+1;
 	currDate[2] = localTime->tm_year + 1900;
 }
 
@@ -250,16 +250,20 @@ bool olderThan150(int *birth, int *death)
 {
 	bool retComp;
 	getCurrentDate();
+	//Check if individual has died
 	if(death[2] == 0) {
+		//check against year
 		if((currDate[2] - birth[2]) > 150) {
 			retComp = true;
 		}
 		else if((currDate[2] - birth[2]) == 150) {
-			if((currDate[1] - birth[1]) < 0) {
+			//check against month
+			if((currDate[1] - birth[1]) >= 0) {
 				retComp = true;
 			}
 			else if((currDate[1] - birth[1]) == 0) {
-				if((currDate[0] - birth[0]) <= 0) {
+				//check against day
+				if((currDate[0] - birth[0]) >= 0) {
 					retComp = true;
 				}
 				else {
@@ -274,15 +278,19 @@ bool olderThan150(int *birth, int *death)
 			retComp = false;
 		}
 	}
+	//check year of death against birth
 	else if((death[2] - birth[2]) > 150) {
 		retComp = true;
 	}
+	//check year of death against birth
 	else if((death[2] - birth[2]) == 150) {
-		if((death[1] - birth[1]) < 0) {
+		//check month of death against birth
+		if((death[1] - birth[1]) >= 0) {
 			retComp = true;
 		}
+		//check date of death against birth
 		else if((death[1] - birth[1]) == 0) {
-			if((death[0] - birth[0]) <= 0) {
+			if((death[0] - birth[0]) >= 0) {
 				retComp = true;
 			}
 			else {
