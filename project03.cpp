@@ -172,7 +172,6 @@ bool checkValidBirth(Indi &indi) {
             for (int i = 0; i < 3; i++) {
                 //Creating a deep copy of dadDeath
                 dDeath[i] = dadDeath[i];
-                cout << dDeath[i] << endl;
             }
             int monthOffset = 9;
             if (dDeath[1] + monthOffset <= 12) {
