@@ -643,15 +643,19 @@ int main() {
                     // Corresponding entries
                     vector<int> family = IndiArr[currID]->get_famc();
                     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
-                        if ((FamArr[*it] == NULL) || (!(FamArr[*it]->checkChild(currID)))) {
-                            cout << IndiArr[currID]->get_name() << " is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                        if (FamArr[*it] != NULL) {
+                            if (!(FamArr[*it]->checkChild(currID))) {
+                                cout << IndiArr[currID]->get_name() << " is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                            }
                         }
                     }
                     family = IndiArr[currID]->get_fams();
                     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
                         //cout << FamArr[*it]->get_husb() << " " << FamArr[*it]->get_wife() << "\n";
-                        if ((FamArr[*it] == NULL) || (!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
-                            cout << IndiArr[currID]->get_name() << " is not corresponding spouse in family " << FamArr[*it]->get_id() << "\n";
+                        if (FamArr[*it] != NULL) {
+                            if ((!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
+                                cout << IndiArr[currID]->get_name() << " is not corresponding spouse in family " << FamArr[*it]->get_id() << "\n";
+                            }
                         }
                     }
                 }
