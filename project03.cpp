@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ string FamTags[] = {"CHIL", "DIV", "HUSB", "WIFE"};
 // Global Variables
 vector< Indi* > IndiArr;
 vector< Fam* > FamArr;
+int currDate[3];
 
 /**
  * Splits the input string by spaces, removing '\r'
@@ -44,6 +46,19 @@ vector< string > parseLine(string &line) {
         res.push_back(buffer);
     }
     return res;
+}
+
+/*
+* Gets the current Date
+*/
+void getCurrentDate() {
+	time_t currentTime;
+	struct tm *localTime;
+	time(&currentTime);
+	localTime = localtime(&currentTime);
+	currDate[0] = localTime->tm_mday;
+	currDate[1] = localTime->tm_mon+1;
+	currDate[2] = localTime->tm_year + 1900;
 }
 
 /**
@@ -412,28 +427,99 @@ bool checkValidBirth(Indi &indi) {
     return true;
 }
 
-/*void checkWedlock(Fam *family, vector< Indi* > IndiArr)
+/*
+* Checks if an individual was born before parents were married or after they were divorced
+*/
+void checkWedlock(Indi &indi) {
+	int* birth = indi.get_birth();
+	// Individual was born before their parents were married
+    vector <int> famc = indi.get_famc();
+	for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
+        Fam *family = FamArr[*f];
+		if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
+			if(dateCompare(birth, family->get_marr()) == 1) {
+				cout << "Error: Child born out of wedlock. \n";
+			}
+			else
+			{
+				if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
+					if(dateCompare(birth, family->get_div()) == -1) {
+						cout << "Error: Child born out of wedlock. \n";
+					}
+				}
+			}
+		}
+		else {
+			cout << "Error: Child born out of wedlock. \n";
+		}
+	}
+}
+
+
+// Checks to make sure no one is over 150 years old
+bool olderThan150(int *birth, int *death)
 {
-    vector<int> childArr = family->get_chil();
-    for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
-        if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
-            if(dateCompare(IndiArr[*it]->get_birth(), family->get_marr()) == 1) {
-                cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-            }
-            else
-            {
-                if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
-                    if(dateCompare(IndiArr[*it]->get_birth(), family->get_div()) == -1) {
-                        cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-                    }
-                }
-            }
-        }
-        else {
-            cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-        }
-    }
-}*/
+	bool retComp;
+	getCurrentDate();
+	//Check if individual has died
+	if(death[2] == 0) {
+		//check against year
+		if((currDate[2] - birth[2]) > 150) {
+			retComp = true;
+		}
+		else if((currDate[2] - birth[2]) == 150) {
+			//check against month
+			if((currDate[1] - birth[1]) >= 0) {
+				retComp = true;
+			}
+			else if((currDate[1] - birth[1]) == 0) {
+				//check against day
+				if((currDate[0] - birth[0]) >= 0) {
+					retComp = true;
+				}
+				else {
+					retComp = false;
+				}
+			}
+			else {
+				retComp = false;
+			}
+		}
+		else {
+			retComp = false;
+		}
+	}
+	//check year of death against birth
+	else if((death[2] - birth[2]) > 150) {
+		retComp = true;
+	}
+	//check year of death against birth
+	else if((death[2] - birth[2]) == 150) {
+		//check month of death against birth
+		if((death[1] - birth[1]) >= 0) {
+			retComp = true;
+		}
+		//check date of death against birth
+		else if((death[1] - birth[1]) == 0) {
+			if((death[0] - birth[0]) >= 0) {
+				retComp = true;
+			}
+			else {
+				retComp = false;
+			}
+		}
+		else {
+			retComp = false;
+		}
+	}
+	else {
+		retComp = false;
+	}
+	if(retComp == true) {
+		cout << "Error: Individual should be less than 150 years old.\n";
+	}
+	return retComp;
+}
 
 /*
  * Function prints value for Indi and Fam onto output screen
@@ -447,6 +533,13 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             cout << "Name: " << IndiArr[currID]->get_name() << "\n";
             int* birthDate = IndiArr[currID]->get_birth();
             cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
+			// Check Valid Birth
+			checkValidBirth(*IndiArr[currID]);
+			// Check for Younger Than 150
+			olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
+			// Check Individual Not Born Out of Wedlock
+			checkWedlock(*IndiArr[currID]);
+			//Add entries to output file
             outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
             outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
             // Corresponding entries
@@ -528,35 +621,15 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                     }
                 }
             }
-            //checkWedlock(FamArr[currID], IndiArr);
             vector<int> childArr = FamArr[currID]->get_chil();
             int multBirthCount = 0;
             for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
-                if (IndiArr[*it] != NULL) {
-                    if (FamArr[currID]->get_marr()[0] != 0 && FamArr[currID]->get_marr()[1] != 0 && FamArr[currID]->get_marr()[2] != 0) {
-                        if (dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_marr()) == 1) {
-                            cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-                        }
-                        else
-                        {
-                            if(FamArr[currID]->get_div()[0] != 0 && FamArr[currID]->get_div()[1] != 0 && FamArr[currID]->get_div()[2] != 0) {
-                                if(dateCompare(IndiArr[*it]->get_birth(), FamArr[currID]->get_div()) == -1) {
-                                    cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        cout << "Error: " << IndiArr[*it]->get_name() << " born out of wedlock. \n";
-                    }
-                }
                 // Check if corresponding entry for child in Indi entry
                 if (IndiArr[*it] == NULL) {
                     cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
                 } else if (!(IndiArr[*it]->checkFamC(currID))) {
                     cout << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() << "\n";
                 }
-                
                 for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
                     if ((IndiArr[*it] != NULL) && (IndiArr[*itCmp] != NULL)) {
                         if (IndiArr[*it]->get_id() != IndiArr[*itCmp]->get_id()) {
@@ -653,6 +726,8 @@ int main() {
                 }
                 getline(gedFile, line);
             }
+			
+			
             printScreen(outputFile, maxIndi, maxFam);
             outputFile.close();
         } else {
