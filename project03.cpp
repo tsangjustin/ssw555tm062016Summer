@@ -195,7 +195,7 @@ int addIndi(int &index, string &line) {
             fullName += parsed[parsed.size() - 1];
             IndiArr[index]->set_name(fullName);
         }
-    // Tag is Sez
+    // Tag is Sex
     } else if (parsed[1] == "SEX") {
         if (parsed[2] == "M") {
             IndiArr[index]->set_sex(true);
@@ -335,8 +335,12 @@ bool addFamDate(int &index, int &tag, string &line) {
 int dateCompare(int *arrA, int *arrB) {
     int retCmp = 0;
     // TODO YEAR 0
+	
     //Compares years
-    if(arrA[2] > arrB[2]) {
+	if (arrA[2] == 0 || arrB[2] == 0) {
+        // Check if a date was actually provided
+        retCmp = 0;
+	} else if (arrA[2] > arrB[2]) {
         retCmp = -1;
     } else if(arrA[2] < arrB[2]) {
         retCmp = 1;
@@ -361,6 +365,7 @@ int dateCompare(int *arrA, int *arrB) {
     // Returns -1 if DateA is later than DateB
     // Returns  1 if DateA is earlier than DateB
     // Returns  0 if DateA is the same as DateB
+	// Returns  0 if either DateA or Date B is missing
 }
 
 /*
@@ -436,21 +441,22 @@ void checkWedlock(Indi &indi) {
     vector <int> famc = indi.get_famc();
 	for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
         Fam *family = FamArr[*f];
-		if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
-			if(dateCompare(birth, family->get_marr()) == 1) {
-				cout << "Error: Child born out of wedlock. \n";
-			}
-			else
-			{
-				if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
-					if(dateCompare(birth, family->get_div()) == -1) {
-						cout << "Error: Child born out of wedlock. \n";
+		if (family == NULL) {
+			if(family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
+				if(dateCompare(birth, family->get_marr()) == 1) {
+					cout << "Error: Child born out of wedlock. \n";
+				}
+				else {
+					if(family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
+						if(dateCompare(birth, family->get_div()) == -1) {
+							cout << "Error: Child born out of wedlock. \n";
+						}
 					}
 				}
 			}
-		}
-		else {
-			cout << "Error: Child born out of wedlock. \n";
+			else {
+				cout << "Error: Child born out of wedlock. \n";
+			}
 		}
 	}
 }
@@ -534,7 +540,8 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             int* birthDate = IndiArr[currID]->get_birth();
             cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
 			// Check Valid Birth
-			checkValidBirth(*IndiArr[currID]);
+			//TODO Fix SegFault
+			//checkValidBirth(*IndiArr[currID]); 
 			// Check for Younger Than 150
 			olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
 			// Check Individual Not Born Out of Wedlock
@@ -572,6 +579,10 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
+				//Check if husband was alive at time of marriage
+				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+					cout << "Error: Husband died before being married.\n";
+				}
             }
             memberID = FamArr[currID]->get_wife(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
@@ -583,8 +594,16 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
+				//Check if wife was alive at time of marriage
+				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+					cout << "Error: Wife died before being married.\n";
+				}
             }
-            // Check unique family by spouse names and marriage date
+			//Checks for marriage before divorce
+			if(dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
+				cout << "Error: Family divorced before being married.\n";
+			}
+           // Check unique family by spouse names and marriage date
             for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
                 if (FamArr[restFamID] != NULL) {
                     int currIndiID = FamArr[currID]->get_husb();
