@@ -631,7 +631,7 @@ int main() {
                     cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
                     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
                     int* birthDate = IndiArr[currID]->get_birth();
-                    cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
+                    //cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
                     // Check Valid Birth
                     checkValidBirth(*IndiArr[currID]);
 					// Check for Younger Than 150
