@@ -674,6 +674,10 @@ int main() {
                         } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                             cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                         }
+						//Check if husband was alive at time of marriage
+						if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+							cout << "Error: Husband died before being married.\n";
+						}
                     }
                     memberID = FamArr[currID]->get_wife(); 
                     if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
@@ -685,7 +689,15 @@ int main() {
                         } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                             cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                         }
+						//Check if wife was alive at time of marriage
+						if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+							cout << "Error: Wife died before being married.\n";
+						}
                     }
+					//Checks for marriage before divorce
+					if(dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
+						cout << "Error: Family divorced before being married.\n";
+					}
                     // Check unique family by spouse names and marriage date
                     for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
                         if (FamArr[restFamID] != NULL) {
