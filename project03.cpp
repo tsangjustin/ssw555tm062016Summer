@@ -386,49 +386,58 @@ bool checkValidBirth(Indi &indi) {
     for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
         Fam *fam = FamArr[*f];
 
-        // Getting parents
-        Indi* mom = IndiArr[fam->get_wife()];
-        Indi* dad = IndiArr[fam->get_husb()];
-
-        int* momDeath = mom->get_death();
-        int* dadDeath = dad->get_death();
-
         // Cannot be born after death of mother
-        if (dateCompare(birth, momDeath) < 0) {
-            cout << "Error: Individual cannot be born after the death of mother.\n";
-            return false;
+        if (fam->get_wife() != -1) { //Check if mom on record
+            Indi* mom = IndiArr[fam->get_wife()];
+
+            int* momDeath = mom->get_death();
+            if (dateCompare(birth, momDeath) < 0) {
+                cout << "Error: Individual cannot be born after the death of mother.\n";
+                return false;
+            }
         }
+
         // Cannot be born 9 months after death of father
-        int* dDeath = new int[3];
-        for (int i = 0; i < 3; i++) {
-            //Creating a deep copy of dadDeath
-            dDeath[i] = dadDeath[0];
-        }
-        int monthOffset = 9;
-        if (dDeath[1] + monthOffset <= 12) {
-            dDeath[1] += monthOffset;
-        } else {
-            monthOffset -= (12 - dDeath[1]);
-            dDeath[1] = monthOffset;
-            dDeath[2] += 1;
-        }
-        if (dateCompare(birth, dDeath) < 0) {
-            cout << "Error: Individual cannot be born 9 months after the death of father.\n";
-            return false;
+        if (fam->get_husb() != -1) { //Check if dad on record
+            Indi* dad = IndiArr[fam->get_husb()];
+
+            int* dadDeath = dad->get_death();
+            int* dDeath = new int[3];
+            for (int i = 0; i < 3; i++) {
+                //Creating a deep copy of dadDeath
+                dDeath[i] = dadDeath[i];
+            }
+            int monthOffset = 9;
+            if (dDeath[1] + monthOffset <= 12) {
+                dDeath[1] += monthOffset;
+            } else {
+                monthOffset -= (12 - dDeath[1]);
+                dDeath[1] = monthOffset;
+                dDeath[2] += 1;
+            }
+            if (dateCompare(birth, dDeath) < 0) {
+                cout << "Error: Individual cannot be born 9 months after the death of father.\n";
+                return false;
+            }
         }
     }
 
     // Individual was born before they got married
-    vector<int> fams = indi.get_fams();
+    vector <int> fams = indi.get_fams();
     for (std::vector<int>::iterator f = fams.begin(); f != fams.end(); ++f) {
         Fam* fam = FamArr[*f];
 
         int* marr = fam->get_marr();
-        if (dateCompare(birth, marr) < 0){
-            cout << "Error: Individual cannot be married before birth.\n";
-            return false;
+        // Check that individual got married
+        if (marr != NULL) {
+            if (dateCompare(birth, marr) < 0){
+                cout << "marr: " << marr[0] <<"-" <<marr[1]<<"-"<<marr[2]<<"\n";
+                cout << "Error: Individual cannot be married before birth.\n";
+                return false;
+            }
         }
     }
+
     return true;
 }
 
@@ -540,8 +549,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             int* birthDate = IndiArr[currID]->get_birth();
             cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
 			// Check Valid Birth
-			//TODO Fix SegFault
-			//checkValidBirth(*IndiArr[currID]); 
+			checkValidBirth(*IndiArr[currID]); 
 			// Check for Younger Than 150
 			olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
 			// Check Individual Not Born Out of Wedlock
@@ -573,7 +581,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
                 outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
-                // Check if spuse has corresponding Indi entry
+                // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
                     cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
@@ -678,7 +686,7 @@ int main() {
     cout << "Enter ged file name: ";
     getline(cin, fileNameInput);
     fileNameInput += ".ged";
-    ifstream gedFile (fileNameInput);
+    ifstream gedFile ("GED_Files/"+fileNameInput);
     ofstream outputFile;
     //int levelNumber = -1;
     
