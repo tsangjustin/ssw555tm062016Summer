@@ -334,8 +334,6 @@ bool addFamDate(int &index, int &tag, string &line) {
  */
 int dateCompare(int *arrA, int *arrB) {
     int retCmp = 0;
-    // TODO YEAR 0
-	
     //Compares years
 	if (arrA[2] == 0 || arrB[2] == 0) {
         // Check if a date was actually provided
@@ -372,13 +370,15 @@ int dateCompare(int *arrA, int *arrB) {
 * Checks if an individual has a valid birth date.
 */
 bool checkValidBirth(Indi &indi) {
+    bool isError = false;
     int* birth = indi.get_birth();
 
     // Individual was born before they died
     int* death = indi.get_death();
     if (dateCompare(birth, death) < 0) {
-        cout << "Error: Individual cannot die before they are born.\n";
-        return false;
+        //cout << "Error US03: Individual cannot die before they are born.\n";
+        cout << "Error US03: " << indi.get_name() << " (" << indi.get_id() << ") cannot die before they are born.\n";
+        isError = true;
     }
 
     // Individual was born before their parents died
@@ -392,8 +392,11 @@ bool checkValidBirth(Indi &indi) {
 
             int* momDeath = mom->get_death();
             if (dateCompare(birth, momDeath) < 0) {
-                cout << "Error: Individual cannot be born after the death of mother.\n";
-                return false;
+                //cout << "Error US09: Individual cannot be born after the death of mother.\n";
+                cout << "Error US09: " << indi.get_name() << " (" << indi.get_id() \
+                    << ") cannot be born after the death of mother " << mom->get_name() \
+                    << " (" << mom->get_id() << ").\n";
+                isError = true;
             }
         }
 
@@ -416,8 +419,11 @@ bool checkValidBirth(Indi &indi) {
                 dDeath[2] += 1;
             }
             if (dateCompare(birth, dDeath) < 0) {
-                cout << "Error: Individual cannot be born 9 months after the death of father.\n";
-                return false;
+                //cout << "Error: Individual cannot be born 9 months after the death of father.\n";
+                cout << "Error US09: " << indi.get_name() << " (" << indi.get_id() \
+                    << ") cannot be born 9 months after the death of father " \
+                    << dad->get_name() << " (" << dad->get_id() << ").\n";
+                isError = true;
             }
         }
     }
@@ -431,13 +437,15 @@ bool checkValidBirth(Indi &indi) {
         // Check that individual got married
         if (marr != NULL) {
             if (dateCompare(birth, marr) < 0){
-                cout << "marr: " << marr[0] <<"-" <<marr[1]<<"-"<<marr[2]<<"\n";
-                cout << "Error: Individual cannot be married before birth.\n";
-                return false;
+                // cout << "Error: Individual cannot be married before birth.\n";
+                cout << "Error US02: " << indi.get_name() << " (" << indi.get_id() << ") cannot be married before birth.\n";
+                isError = true;
             }
         }
     }
 
+    if(isError)
+        return false;
     return true;
 }
 
