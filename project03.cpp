@@ -739,6 +739,45 @@ bool olderThan150(int *birth, int *death)
 	return retComp;
 }
 
+void checkUniqueFamS(int &currID, int &maxFam) { 
+    for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
+        if (FamArr[restFamID] != NULL) {
+            int currIndiID = FamArr[currID]->get_husb();
+            int nextIndiID = FamArr[restFamID]->get_husb();
+            if (currIndiID == -1 && nextIndiID == -1) {
+                currIndiID = FamArr[currID]->get_wife();
+                nextIndiID = FamArr[restFamID]->get_wife();
+                if (currIndiID == -1 && nextIndiID == -1) {
+                    if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
+                        cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same marriage dates\n";
+                    }
+                }
+            }
+            else if (currIndiID > 0 && nextIndiID > 0) {
+                Indi* currIndi = IndiArr[currIndiID];
+                Indi* nextIndi = IndiArr[nextIndiID];
+                if (currIndi != NULL && nextIndi != NULL) {
+                    if (currIndi->get_name() == nextIndi->get_name()) {
+                        currIndiID = FamArr[currID]->get_wife();
+                        nextIndiID = FamArr[restFamID]->get_wife();
+                        if (currIndiID > 0 && nextIndiID > 0) {
+                            Indi* currIndi = IndiArr[currIndiID];
+                            Indi* nextIndi = IndiArr[nextIndiID];
+                            if (currIndi != NULL && nextIndi != NULL) {
+                                if (currIndi->get_name() == nextIndi->get_name()) {
+                                    if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
+                                        cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same spouse names and marriage dates\n";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /*
  * Function prints value for Indi and Fam onto output screen
  */
@@ -814,43 +853,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 			if(dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
 				cout << "Error: Family divorced before being married.\n";
 			}
-           // Check unique family by spouse names and marriage date
-            for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
-                if (FamArr[restFamID] != NULL) {
-                    int currIndiID = FamArr[currID]->get_husb();
-                    int nextIndiID = FamArr[restFamID]->get_husb();
-                    if (currIndiID == -1 && nextIndiID == -1) {
-                        currIndiID = FamArr[currID]->get_wife();
-                        nextIndiID = FamArr[restFamID]->get_wife();
-                        if (currIndiID == -1 && nextIndiID == -1) {
-                            if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
-                                cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same marriage dates\n";
-                            }
-                        }
-                    }
-                    else if (currIndiID > 0 && nextIndiID > 0) {
-                        Indi* currIndi = IndiArr[currIndiID];
-                        Indi* nextIndi = IndiArr[nextIndiID];
-                        if (currIndi != NULL && nextIndi != NULL) {
-                            if (currIndi->get_name() == nextIndi->get_name()) {
-                                currIndiID = FamArr[currID]->get_wife();
-                                nextIndiID = FamArr[restFamID]->get_wife();
-                                if (currIndiID > 0 && nextIndiID > 0) {
-                                    Indi* currIndi = IndiArr[currIndiID];
-                                    Indi* nextIndi = IndiArr[nextIndiID];
-                                    if (currIndi != NULL && nextIndi != NULL) {
-                                        if (currIndi->get_name() == nextIndi->get_name()) {
-                                            if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
-                                                cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same spouse names and marriage dates\n";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Check unique family by spouse names and marriage date
+            checkUniqueFamS(currID, maxFam);
+
             vector<int> childArr = FamArr[currID]->get_chil();
             int multBirthCount = 0;
             for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
