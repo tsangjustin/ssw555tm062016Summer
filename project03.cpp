@@ -436,7 +436,7 @@ bool checkValidBirth(Indi &indi) {
         int* marr = fam->get_marr();
         // Check that individual got married
         if (marr != NULL) {
-            if (dateCompare(birth, marr) < 0){
+            if (dateCompare(birth, marr) > 0){
                 // cout << "Error: Individual cannot be married before birth.\n";
                 cout << "Error US02: " << indi.get_name() << " (" << indi.get_id() << ") cannot be married before birth.\n";
                 isError = true;
@@ -445,6 +445,63 @@ bool checkValidBirth(Indi &indi) {
     }
 
     if(isError)
+        return false;
+    return true;
+}
+
+/**
+* Checks that all siblings in a family are born at least 9 months apart, or less than 2 days apart.
+*/
+bool checkSiblingSpacing(Fam &fam) {
+    bool isError = false;
+    int * birth1 = new int[3]();
+    int * birth2 = new int[3]();
+
+    vector <int> chil = fam.get_chil();
+    cout << chil.size() << '\n';
+    if (chil.size() <= 1) {
+        return true;
+    }
+    for (std::vector<int>::iterator c1 = chil.begin(); c1 != --chil.end(); c1++) {
+        for (std::vector<int>::iterator c2 = c1 + 1; c2 != chil.end(); c2++) {
+            Indi * child1 = IndiArr[*c1];
+            Indi * child2 = IndiArr[*c2];
+            birth1 = child1->get_birth();
+            birth2 = child2->get_birth();
+
+            if (dateCompare(birth1,birth2) <= 0) {
+                // birth 1 is less that birth2 - switch them
+                int *temp = new int[3]();
+                temp = birth1;
+                birth1 = birth2;
+                birth2 = temp;
+            }
+            if (birth1[2] - birth2[2] == 1) {
+                if ((birth1[1] + 9 % 12) <= birth2[2]) {
+                    isError = true;
+                }
+            }
+            else if (birth1[2] - birth2[2] == 0) {
+                // Check if twins
+                if (birth1[1] - birth2[1] == 0) {
+                    if (birth1[1] - birth2[1] > 2) {
+                        // more than two days apart, not twins
+                        isError = true;
+                    }
+                }
+                // Not twins
+                else if (birth1[1] - birth2[1] < 9) {
+                    isError = true;
+                }
+            }
+            if (isError) {
+                cout << "Error US13: Siblings " << child1->get_name() << " (" << child1->get_id() \
+                    << ") and " << child2->get_name() << " (" << child2->get_id() << ") in family " \
+                    << fam.get_id() << "are born less than 9 months apart, and not twins.\n";
+            }
+        }
+    }
+    if (isError)
         return false;
     return true;
 }
@@ -684,6 +741,8 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             if (multBirthCount > 5) {
                 cout << "Error: Too Many Children Born at Once. \n";
             }
+            // Check Sibling Spacing
+            checkSiblingSpacing(*FamArr[currID]);
         }
     }
 }
