@@ -322,7 +322,7 @@ void validateDate(int &day, int &mth, int &yr) {
     }
 }
 
-bool addIndiDate(int &index, int &tag, string &line) {
+bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     vector<string> parsed = parseLine(line);
     int day= 0;
     int mth = 0;
@@ -346,56 +346,23 @@ bool addIndiDate(int &index, int &tag, string &line) {
     } else {
         return false;
     }
+    validateDate(day, mth, yr);
     switch (tag) {
         // If tag that instigated date was BIRT
         case (1):
-            IndiArr[index]->set_birth(day, mth, yr);
+            if (isIndi) {
+                IndiArr[index]->set_birth(day, mth, yr);
+            } else {
+                FamArr[index]->set_marr(day, mth, yr);
+            }
             break;
         // If tag that instigated date was DEAT
         case (2):
-            IndiArr[index]->set_death(day, mth, yr);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
-/*
- * Function adds date to attribute to the index at FamArr
- */
-bool addFamDate(int &index, int &tag, string &line) {
-    vector<string> parsed = parseLine(line);
-    int day= 0;
-    int mth = 0;
-    int yr = 0;
-    stringstream buffer;
-    // If only provided year
-    if (parsed.size() == 3) {
-        buffer << parsed[2];
-        buffer >> yr;
-    // If only provided month and year
-    } else if (parsed.size() == 4) {
-        buffer << parsed[3];
-        buffer >> yr;
-        mth = convMonth(parsed[2]);
-    // If provided day, month, and year
-    } else if (parsed.size() == 5) {
-        stringstream buffer;
-        buffer << parsed[2] << " " << parsed[4];
-        buffer >> day >> yr;
-        mth = convMonth(parsed[3]);
-    } else {
-        return false;
-    }
-    switch (tag) {
-        // If tag instigated was MARR
-        case (1):
-            FamArr[index]->set_marr(day, mth, yr);
-            break;
-        // If tag instigated was DIV
-        case (2):
-            FamArr[index]->set_div(day, mth, yr);
+            if (isIndi) {
+                IndiArr[index]->set_death(day, mth, yr);
+            } else {
+                FamArr[index]->set_div(day, mth, yr);
+            }
             break;
         default:
             return false;
@@ -678,7 +645,6 @@ void checkWedlock(Indi &indi) {
 bool olderThan150(int *birth, int *death)
 {
 	bool retComp;
-	getCurrentDate();
 	//Check if individual has died
 	if(death[2] == 0) {
 		//check against year
@@ -912,6 +878,7 @@ int main() {
             for (int i = 0; i <= 1000; ++i) {
                 FamArr[i] = NULL;
             }
+            getCurrentDate();
             // Local Variables
             string line;
             int maxIndi = 0;
@@ -925,11 +892,7 @@ int main() {
             while (line != "") {
                 if (returnValue > 0) {
                     if (line[0] == '2') {
-                        if (isIndi) {
-                            addIndiDate(currIndex, returnValue, line);
-                        } else {
-                            addFamDate(currIndex, returnValue, line);
-                        }
+                        addDate(isIndi, currIndex, returnValue, line);
                     }
                     returnValue = 0;
                 }
