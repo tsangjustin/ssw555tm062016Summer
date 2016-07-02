@@ -450,20 +450,83 @@ bool checkValidBirth(Indi &indi) {
 }
 
 /**
+* Checks that the mother is less than 60 years older than her children, and that the father is less than 80 years older than his children.
+*/
+bool parentsNotTooOld(Fam &fam) {
+    bool isError = false;
+    Indi* mom;
+    int * momBirth;
+    int * momFinal;
+    Indi * dad;
+    int * dadBirth;
+    int * dadFinal;
+
+    // Get Mother's information
+    if (fam.get_wife() != -1) {
+        mom = IndiArr[fam.get_wife()];
+        momBirth = mom->get_birth();
+        momFinal = new int[3];
+        for (int i = 0; i < 3; i++) {
+            //Creating a deep copy of dadDeath
+            momFinal[i] = momBirth[i];
+        }
+        momFinal[2] += 60; // Can have kids up to 60 years after birth
+    }
+    // Get Father's information
+    if (fam.get_husb() != -1) {
+        dad = IndiArr[fam.get_husb()];
+        dadBirth = dad->get_birth();
+        dadFinal = new int[3];
+        for (int i = 0; i < 3; i++) {
+            //Creating a deep copy of dadDeath
+            dadFinal[i] = dadBirth[i];
+        }
+        dadFinal[2] += 80; // Can have kids up to 80 years after birth
+    }
+
+    vector <int> chil = fam.get_chil();
+    for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
+        Indi * child = IndiArr[*c];
+        if (fam.get_wife() != -1) {
+            // Compare mother to child
+            if (dateCompare(momFinal, child->get_birth()) > 0) {
+                isError = true;
+                cout << "Error US12: Mother " << mom->get_name() << " (" << mom->get_id() << ") was too old when child " \
+                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"; 
+            }
+        }
+        if (fam.get_husb() != -1) {
+            // Compare father to child
+            if (dateCompare(dadFinal, child->get_birth()) > 0) {
+                isError = true;
+                cout << "Error US12: Father " << dad->get_name() << " (" << dad->get_id() << ") was too old when child " \
+                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"; 
+            }
+        }
+    }
+
+    if (isError) 
+        return false;
+    return true;
+}
+
+/**
 * Checks that all siblings in a family are born at least 9 months apart, or less than 2 days apart.
 */
 bool checkSiblingSpacing(Fam &fam) {
     bool isError = false;
+    bool localError = false;
     int * birth1 = new int[3]();
     int * birth2 = new int[3]();
 
     vector <int> chil = fam.get_chil();
-    cout << chil.size() << '\n';
     if (chil.size() <= 1) {
         return true;
     }
     for (std::vector<int>::iterator c1 = chil.begin(); c1 != --chil.end(); c1++) {
         for (std::vector<int>::iterator c2 = c1 + 1; c2 != chil.end(); c2++) {
+            localError = false;
+            
             Indi * child1 = IndiArr[*c1];
             Indi * child2 = IndiArr[*c2];
             birth1 = child1->get_birth();
@@ -478,7 +541,7 @@ bool checkSiblingSpacing(Fam &fam) {
             }
             if (birth1[2] - birth2[2] == 1) {
                 if ((birth1[1] + 9 % 12) <= birth2[2]) {
-                    isError = true;
+                    localError = true;
                 }
             }
             else if (birth1[2] - birth2[2] == 0) {
@@ -486,18 +549,19 @@ bool checkSiblingSpacing(Fam &fam) {
                 if (birth1[1] - birth2[1] == 0) {
                     if (birth1[1] - birth2[1] > 2) {
                         // more than two days apart, not twins
-                        isError = true;
+                        localError = true;
                     }
                 }
                 // Not twins
                 else if (birth1[1] - birth2[1] < 9) {
-                    isError = true;
+                    localError = true;
                 }
             }
-            if (isError) {
+            if (localError) {
+                isError = localError;
                 cout << "Error US13: Siblings " << child1->get_name() << " (" << child1->get_id() \
                     << ") and " << child2->get_name() << " (" << child2->get_id() << ") in family " \
-                    << fam.get_id() << "are born less than 9 months apart, and not twins.\n";
+                    << fam.get_id() << " are born less than 9 months apart, and not twins.\n";
             }
         }
     }
@@ -609,7 +673,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
-            cout << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
+            cout << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
             cout << "Name: " << IndiArr[currID]->get_name() << "\n";
             int* birthDate = IndiArr[currID]->get_birth();
             cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
@@ -640,7 +704,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
     }
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
-            cout << "FAM ID: " << FamArr[currID]->get_id() << "\n";
+            cout << "\nFAM ID: " << FamArr[currID]->get_id() << "\n";
             outputFile << "FAM ID: " << FamArr[currID]->get_id() << "\n";
             int memberID = FamArr[currID]->get_husb(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
@@ -741,7 +805,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             if (multBirthCount > 5) {
                 cout << "Error: Too Many Children Born at Once. \n";
             }
-            // Check Sibling Spacing
+            parentsNotTooOld(*FamArr[currID]);
             checkSiblingSpacing(*FamArr[currID]);
         }
     }
