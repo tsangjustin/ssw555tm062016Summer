@@ -260,15 +260,83 @@ bool addFam(int &index, string &line) {
     return 0;
 }
 
+void validateDate(int &day, int &mth, int &yr) {
+    int permDay = day;
+    int permMth = mth;
+    int permYr = yr;
+    bool isValid = true;
+    // Invalid year
+    if ((yr < 0) || (yr > currDate[2])) {
+        yr = 0;
+        mth = 0;
+        day = 0;
+        isValid = false;
+    }
+    if ((mth < 0) || (mth > 12)) {
+        mth = 0;
+        day = 0;
+        isValid = false;
+    }
+    if ((day < 0) || (day > 31)) {
+        day = 0;
+        isValid = false;
+    }
+    switch (mth) {
+        case (2):
+            if ((yr % 400 == 0) || ((yr % 100 != 0) && (yr % 4 == 0))) {
+                if ((day < 0) || (day > 29)) {
+                    day = 0;
+                    isValid = false;
+                }
+            } else {
+                if ((day < 0) || (day > 28)) {
+                    day = 0;
+                    isValid = false;
+                }
+            }
+            break;
+        case (1):
+        case (3):
+        case (5):
+        case (7):
+        case (8):
+        case (10):
+        case (12):
+            if ((day < 0) || (day > 31)) {
+                day = 0;
+                isValid = false;
+            }
+            break;
+        case (4):
+        case (6):
+        case (9):
+        case (11):
+            if ((day < 0) || (day > 30)) {
+                day = 0;
+                isValid = false;
+            }
+            break;
+    }
+    if (!isValid) {
+        cout << permMth << "/" << permDay << "/" << permYr << " is not a valid date\n";
+    }
+}
+
 bool addIndiDate(int &index, int &tag, string &line) {
     vector<string> parsed = parseLine(line);
     int day= 0;
     int mth = 0;
     int yr = 0;
+    stringstream buffer;
     // If only provided year
     if (parsed.size() == 3) {
-        istringstream buffer(parsed[2]);
+        buffer << parsed[2];
         buffer >> yr;
+    // If only provided month and year
+    } else if (parsed.size() == 4) {
+        buffer << parsed[3];
+        buffer >> yr;
+        mth = convMonth(parsed[2]);
     // If provided day, month, and year
     } else if (parsed.size() == 5) {
         stringstream buffer;
@@ -301,10 +369,16 @@ bool addFamDate(int &index, int &tag, string &line) {
     int day= 0;
     int mth = 0;
     int yr = 0;
+    stringstream buffer;
     // If only provided year
     if (parsed.size() == 3) {
-        istringstream buffer(parsed[2]);
+        buffer << parsed[2];
         buffer >> yr;
+    // If only provided month and year
+    } else if (parsed.size() == 4) {
+        buffer << parsed[3];
+        buffer >> yr;
+        mth = convMonth(parsed[2]);
     // If provided day, month, and year
     } else if (parsed.size() == 5) {
         stringstream buffer;
@@ -884,16 +958,14 @@ int main() {
                 }
                 getline(gedFile, line);
             }
-			
-			
             printScreen(outputFile, maxIndi, maxFam);
             outputFile.close();
         } else {
-            cout << "Unable to open output file.";
+            cout << "Unable to open output file.\n";
         }
         gedFile.close();
     } else {
-        cout << "Unable to open GEDCOM file.";
+        cout << "Unable to open GEDCOM file.\n";
     }
     return 0;
 }
