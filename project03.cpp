@@ -260,36 +260,40 @@ bool addFam(int &index, string &line) {
     return 0;
 }
 
-void validateDate(int &day, int &mth, int &yr) {
+bool validateDate(int &day, int &mth, int &yr) {
     int permDay = day;
     int permMth = mth;
     int permYr = yr;
     bool isValid = true;
     // Invalid year
-    if ((yr < 0) || (yr > currDate[2])) {
+    if ((yr < 1) || (yr > currDate[2])) {
+        // Remove day, month, and year
         yr = 0;
         mth = 0;
         day = 0;
         isValid = false;
-    }
-    if ((mth < 0) || (mth > 12)) {
+    // Invalid Month
+    } else if ((mth < 1) || (mth > 12)) {
+        // Remove day and month
         mth = 0;
         day = 0;
         isValid = false;
-    }
-    if ((day < 0) || (day > 31)) {
+    // Invalid Day
+    } else if ((day < 1) || (day > 31)) {
+        // Remove day
         day = 0;
         isValid = false;
     }
+    // General valid day, month, and year
     switch (mth) {
         case (2):
             if ((yr % 400 == 0) || ((yr % 100 != 0) && (yr % 4 == 0))) {
-                if ((day < 0) || (day > 29)) {
+                if ((day < 1) || (day > 29)) {
                     day = 0;
                     isValid = false;
                 }
             } else {
-                if ((day < 0) || (day > 28)) {
+                if ((day < 1) || (day > 28)) {
                     day = 0;
                     isValid = false;
                 }
@@ -302,7 +306,7 @@ void validateDate(int &day, int &mth, int &yr) {
         case (8):
         case (10):
         case (12):
-            if ((day < 0) || (day > 31)) {
+            if ((day < 1) || (day > 31)) {
                 day = 0;
                 isValid = false;
             }
@@ -311,15 +315,13 @@ void validateDate(int &day, int &mth, int &yr) {
         case (6):
         case (9):
         case (11):
-            if ((day < 0) || (day > 30)) {
+            if ((day < 1) || (day > 30)) {
                 day = 0;
                 isValid = false;
             }
             break;
     }
-    if (!isValid) {
-        cout << permMth << "/" << permDay << "/" << permYr << " is not a valid date\n";
-    }
+    return isValid;
 }
 
 bool addDate(bool &isIndi, int &index, int &tag, string &line) {
@@ -346,7 +348,16 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     } else {
         return false;
     }
-    validateDate(day, mth, yr);
+    if (!(validateDate(day, mth, yr))) {
+        if (isIndi) {
+            cout << "Error US42: " << ((tag == 1) ? "Birth" : "Death") << " date of " << 
+                    IndiArr[index]->get_name() << "(" << IndiArr[index]->get_id() << 
+                    ")" << " is an invalid date.\n";
+        } else {
+            cout << "Error US42: " << ((tag == 1) ? "Marriage" : "Divorce") << " date of " << 
+                    FamArr[index]->get_id() << " is an invalid date.\n";
+        }
+    }
     switch (tag) {
         // If tag that instigated date was BIRT
         case (1):
@@ -372,28 +383,34 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
 
 /*
  * Function compares dates of two given int array
+ * Returns -1 if DateA is later than DateB
+ * Returns  1 if DateA is earlier than DateB
+ * Returns  0 if DateA is the same as DateB
+ * Returns  0 if either DateA or Date B is missing
  */
 int dateCompare(int *arrA, int *arrB) {
     int retCmp = 0;
-    //Compares years
+    // Compare years
+    // Check if a date was actually provided
 	if (arrA[2] == 0 || arrB[2] == 0) {
-        // Check if a date was actually provided
         retCmp = 0;
+    // Date 1 later than date 2
 	} else if (arrA[2] > arrB[2]) {
         retCmp = -1;
+    // Date 2 is later than date 1
     } else if(arrA[2] < arrB[2]) {
         retCmp = 1;
     } else {
-        //compare months
-        if(arrA[1] > arrB[1]) {
+        // Compare months
+        if (arrA[1] > arrB[1]) {
             retCmp = -1;
-        } else if(arrA[1] > arrB[1]) {
+        } else if (arrA[1] > arrB[1]) {
             retCmp = 1;
         } else {
-            //compare dates
-            if(arrA[0] > arrB[0]) {
+            // Compare days
+            if (arrA[0] > arrB[0]) {
                 retCmp = -1;
-            } else if(arrA[0] > arrB[0]) {
+            } else if (arrA[0] > arrB[0]) {
                 retCmp = 1;
             } else {
                 retCmp = 0;
@@ -401,10 +418,6 @@ int dateCompare(int *arrA, int *arrB) {
         }   
     }
     return retCmp;
-    // Returns -1 if DateA is later than DateB
-    // Returns  1 if DateA is earlier than DateB
-    // Returns  0 if DateA is the same as DateB
-	// Returns  0 if either DateA or Date B is missing
 }
 
 /*

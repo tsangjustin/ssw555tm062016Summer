@@ -79,7 +79,7 @@ class Indi {
             return this->fams_;
         }
 
-        bool checkFamC(int famID) {
+        bool checkFamC(int &famID) {
             for (std::vector<int>::iterator it = famc_.begin(); it != famc_.end(); ++it) {
                 if (*it == famID) {
                     return true;
@@ -88,7 +88,7 @@ class Indi {
             return false;
         }
 
-        bool checkFamS(int famID) {
+        bool checkFamS(int &famID) {
             for (std::vector<int>::iterator it = fams_.begin(); it != fams_.end(); ++it) {
                 if (*it == famID) {
                     return true;
