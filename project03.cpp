@@ -381,6 +381,19 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     return true;
 }
 
+int getGreaterDate(int &date1, int &date2) {
+    // Both dates have same value
+    if (date1 == date2) {
+        return 0;
+    // If date 1 is later than date 2
+    } else if (date1 > date2) {
+        return -1;
+    // If date 1 is earlier than date 2
+    } else {
+        return 1;
+    }
+}
+
 /*
  * Function compares dates of two given int array
  * Returns -1 if DateA is later than DateB
@@ -388,34 +401,16 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
  * Returns  0 if DateA is the same as DateB
  * Returns  0 if either DateA or Date B is missing
  */
-int dateCompare(int *arrA, int *arrB) {
-    int retCmp = 0;
+int dateCompare(int* arrA, int* arrB) {
     // Compare years
     // Check if a date was actually provided
-	if (arrA[2] == 0 || arrB[2] == 0) {
-        retCmp = 0;
-    // Date 1 later than date 2
-	} else if (arrA[2] > arrB[2]) {
-        retCmp = -1;
-    // Date 2 is later than date 1
-    } else if(arrA[2] < arrB[2]) {
-        retCmp = 1;
-    } else {
-        // Compare months
-        if (arrA[1] > arrB[1]) {
-            retCmp = -1;
-        } else if (arrA[1] > arrB[1]) {
-            retCmp = 1;
-        } else {
-            // Compare days
-            if (arrA[0] > arrB[0]) {
-                retCmp = -1;
-            } else if (arrA[0] > arrB[0]) {
-                retCmp = 1;
-            } else {
-                retCmp = 0;
-            }
-        }   
+	if ((arrA[2] == 0) || (arrB[2] == 0)) {
+        return 0;
+	}
+    int retCmp = 0;
+    for (int datePart = 2; ((datePart >= 0) && (retCmp == 0)); --datePart) {
+        cout << datePart << " " << arrA[datePart] << " " << arrB[datePart] << "\n";
+        retCmp = getGreaterDate(arrA[datePart], arrB[datePart]);
     }
     return retCmp;
 }
@@ -426,13 +421,15 @@ int dateCompare(int *arrA, int *arrB) {
 bool checkValidBirth(Indi &indi) {
     bool isError = false;
     int* birth = indi.get_birth();
+    cout << "Birth: " << birth[0] << " " << birth[1] << " " << birth[2] << "\n";
 
     // Individual was born before they died
     int* death = indi.get_death();
+    cout << "Death: " << death[0] << " " << death[1] << " " << death[2] << "\n";
     if (dateCompare(birth, death) < 0) {
         //cout << "Error US03: Individual cannot die before they are born.\n";
         cout << "Error US03: " << indi.get_name() << " (" << indi.get_id() << ") cannot die before they are born.\n";
-        isError = true;
+        isError = true; 
     }
 
     // Individual was born before their parents died
@@ -743,10 +740,8 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
         if (IndiArr[currID] != NULL) {
             cout << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
             cout << "Name: " << IndiArr[currID]->get_name() << "\n";
-            int* birthDate = IndiArr[currID]->get_birth();
-            cout << "Birth: " << birthDate[0] << " " << birthDate[1] << " " << birthDate[2] << "\n";
 			// Check Valid Birth
-			checkValidBirth(*IndiArr[currID]); 
+            checkValidBirth(*IndiArr[currID]); 
 			// Check for Younger Than 150
 			olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
 			// Check Individual Not Born Out of Wedlock
