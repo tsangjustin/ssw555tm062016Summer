@@ -146,7 +146,7 @@ int convMonth(string &mth) {
     return 0;
 }
 
-bool checkValidID(bool isIndi, int &id) {
+bool checkValidID(bool &isIndi, int &id) {
     bool isValid = true;
     if (id < 0) {
         isValid = false;
@@ -164,29 +164,22 @@ bool checkValidID(bool isIndi, int &id) {
 }
 
 // Constructors
-int createIndi(string &id) {
+int createIndiFam(bool &isIndi, string &id) {
     int currID = getDigit(id);
     // Check if INDI id is unique
-    if (!(checkValidID(true, currID))) {
+    if (!(checkValidID(isIndi, currID))) {
         return -1;
     }
     // This INDI ID is unique
-    Indi* uniqueIndi = new Indi();
-    uniqueIndi->set_id(id);
-    IndiArr[currID] = uniqueIndi;
-    return currID;
-}
-
-int createFam(string &id) {
-    int currID = getDigit(id);
-    // Check if FAM id is unique
-    if (!(checkValidID(false, currID))) {
-        return -1;
+    if (isIndi) {
+        Indi* uniqueIndi = new Indi();
+        uniqueIndi->set_id(id);
+        IndiArr[currID] = uniqueIndi;
+    } else {
+        Fam* uniqueFam = new Fam();
+        uniqueFam->set_id(id);
+        FamArr[currID] = uniqueFam;
     }
-    // This Fam ID is unique
-    Fam* uniqueFam = new Fam();
-    uniqueFam->set_id(id);
-    FamArr[currID] = uniqueFam;
     return currID;
 }
 
@@ -908,13 +901,13 @@ int main() {
                         if (isValidTag(false, false, parsed[2])) {
                             if (parsed[2] == "INDI") {
                                 isIndi = true;
-                                currIndex = createIndi(parsed[1]);
+                                currIndex = createIndiFam(isIndi, parsed[1]);
                                 if (currIndex > maxIndi) {
                                     maxIndi = currIndex;
                                 }
                             } else if (parsed[2] == "FAM") {
                                 isIndi = false;
-                                currIndex = createFam(parsed[1]);
+                                currIndex = createIndiFam(isIndi, parsed[1]);
                                 if (currIndex > maxFam) {
                                     maxFam = currIndex;
                                 }
