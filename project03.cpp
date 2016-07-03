@@ -94,6 +94,9 @@ bool isValidTag(bool isLevelOneTag, bool isIndi, string &tag) {
     return false;
 }
 
+/**
+ * Function extracts digits in ID
+ */
 int getDigit(string &id) {
     // Regex to grab digit
     string idNum = "";
@@ -143,14 +146,28 @@ int convMonth(string &mth) {
     return 0;
 }
 
+bool checkValidID(bool isIndi, int &id) {
+    bool isValid = true;
+    if (id < 0) {
+        isValid = false;
+    }
+    if (isIndi) {
+        if (IndiArr[id] != NULL) {
+            isValid = false;
+        }
+    } else {
+        if (FamArr[id] != NULL) {
+            isValid = false;
+        }
+    }
+    return isValid;
+}
+
 // Constructors
 int createIndi(string &id) {
     int currID = getDigit(id);
-    if (currID < 0) {
-        return -1;
-    }
     // Check if INDI id is unique
-    if (IndiArr[currID] != NULL) {
+    if (!(checkValidID(true, currID))) {
         return -1;
     }
     // This INDI ID is unique
@@ -162,11 +179,8 @@ int createIndi(string &id) {
 
 int createFam(string &id) {
     int currID = getDigit(id);
-    if (currID < 0) {
-        return -1;
-    }
     // Check if FAM id is unique
-    if (FamArr[currID] != NULL) {
+    if (!(checkValidID(false, currID))) {
         return -1;
     }
     // This Fam ID is unique
@@ -348,6 +362,7 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     } else {
         return false;
     }
+    // Check if "valid" date provided
     if (!(validateDate(day, mth, yr))) {
         if (isIndi) {
             cout << "Error US42: " << ((tag == 1) ? "Birth" : "Death") << " date of " << 
@@ -381,6 +396,13 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     return true;
 }
 
+/*
+ * Function compares date section of two given int array
+ * Returns -1 if DateA is later than DateB
+ * Returns  1 if DateA is earlier than DateB
+ * Returns  0 if DateA is the same as DateB
+ * Returns  0 if either DateA or Date B is missing
+ */
 int getGreaterDate(int &date1, int &date2) {
     // Both dates have same value
     if (date1 == date2) {
@@ -409,7 +431,6 @@ int dateCompare(int* arrA, int* arrB) {
 	}
     int retCmp = 0;
     for (int datePart = 2; ((datePart >= 0) && (retCmp == 0)); --datePart) {
-        cout << datePart << " " << arrA[datePart] << " " << arrB[datePart] << "\n";
         retCmp = getGreaterDate(arrA[datePart], arrB[datePart]);
     }
     return retCmp;
@@ -421,11 +442,10 @@ int dateCompare(int* arrA, int* arrB) {
 bool checkValidBirth(Indi &indi) {
     bool isError = false;
     int* birth = indi.get_birth();
-    cout << "Birth: " << birth[0] << " " << birth[1] << " " << birth[2] << "\n";
-
-    // Individual was born before they died
     int* death = indi.get_death();
+    cout << "Birth: " << birth[0] << " " << birth[1] << " " << birth[2] << "\n";
     cout << "Death: " << death[0] << " " << death[1] << " " << death[2] << "\n";
+    // Individual was born before they died
     if (dateCompare(birth, death) < 0) {
         //cout << "Error US03: Individual cannot die before they are born.\n";
         cout << "Error US03: " << indi.get_name() << " (" << indi.get_id() << ") cannot die before they are born.\n";
