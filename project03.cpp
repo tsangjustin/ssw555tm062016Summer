@@ -733,6 +733,9 @@ void checkUniqueFamS(int &currID, int &maxFam) {
     }
 }
 
+/**
+ * Function checks if Indi has corresponding entry in each FamC's chil_
+ */
 void isCorrespondingFamC(int &currID) {
     vector<int> family = IndiArr[currID]->get_famc();
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
@@ -743,6 +746,9 @@ void isCorrespondingFamC(int &currID) {
     }
 }
 
+/**
+ * Function checks if Indi has corresponding entry in each FamS's husb_ or wife_
+ */
 void isCorrespondingFamS(int &currID) {
     vector<int> family = IndiArr[currID]->get_fams();
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
@@ -753,18 +759,21 @@ void isCorrespondingFamS(int &currID) {
     }
 }
 
+/**
+ * Function prints data of Indi onto console and outputFile
+ */
 void printIndiStats(ofstream &outputFile, int &currID) {
     cout << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+    //Add entries to output file
+    outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
+    outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
     // Check Valid Birth
     checkValidBirth(*IndiArr[currID]); 
     // Check for Younger Than 150
     olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
     // Check Individual Not Born Out of Wedlock
     checkWedlock(*IndiArr[currID]);
-    //Add entries to output file
-    outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
-    outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
     // Corresponding entries
     isCorrespondingFamC(currID);
     isCorrespondingFamS(currID);
