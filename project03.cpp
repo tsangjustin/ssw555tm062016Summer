@@ -273,39 +273,41 @@ bool validateDate(int &day, int &mth, int &yr) {
     int permYr = yr;
     bool isValid = true;
     // Invalid year
-    if ((yr < 1) || (yr > currDate[2])) {
+    if ((yr < 0) || (yr > currDate[2])) {
         // Remove day, month, and year
         yr = 0;
         mth = 0;
         day = 0;
         isValid = false;
     // Invalid Month
-    } else if ((mth < 1) || (mth > 12)) {
+    } else if ((mth < 0) || (mth > 12)) {
         // Remove day and month
         mth = 0;
         day = 0;
         isValid = false;
     // Invalid Day
-    } else if ((day < 1) || (day > 31)) {
+    } else if ((day < 0) || (day > 31)) {
         // Remove day
         day = 0;
         isValid = false;
     }
     // General valid day, month, and year
     switch (mth) {
+        // February
         case (2):
             if ((yr % 400 == 0) || ((yr % 100 != 0) && (yr % 4 == 0))) {
-                if ((day < 1) || (day > 29)) {
+                if ((day < 0) || (day > 29)) {
                     day = 0;
                     isValid = false;
                 }
             } else {
-                if ((day < 1) || (day > 28)) {
+                if ((day < 0) || (day > 28)) {
                     day = 0;
                     isValid = false;
                 }
             }
             break;
+        // January, March, May, July, August, October, December
         case (1):
         case (3):
         case (5):
@@ -313,20 +315,25 @@ bool validateDate(int &day, int &mth, int &yr) {
         case (8):
         case (10):
         case (12):
-            if ((day < 1) || (day > 31)) {
+            if ((day < 0) || (day > 31)) {
                 day = 0;
                 isValid = false;
             }
             break;
+        // April, June, September, November
         case (4):
         case (6):
         case (9):
         case (11):
-            if ((day < 1) || (day > 30)) {
+            if ((day < 0) || (day > 30)) {
                 day = 0;
                 isValid = false;
             }
             break;
+    }
+    if (!(isValid)) {
+        cout << "Error US42: Invalid date (" << permMth << "/" << permDay << "/" <<
+                permYr << ")\n";
     }
     return isValid;
 }
