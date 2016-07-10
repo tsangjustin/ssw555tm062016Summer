@@ -815,6 +815,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Husband died before being married.\n";
 				}
+				if(IndiArr[memberID]->get_sex() != true) {
+					cout << "Error: Husband is not male.\n";
+				}
             }
             memberID = FamArr[currID]->get_wife(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
@@ -829,6 +832,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 				//Check if wife was alive at time of marriage
 				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Wife died before being married.\n";
+				}
+				if(IndiArr[memberID]->get_sex() != false) {
+					cout << "Error: Wife is not female.\n";
 				}
             }
 			//Checks for marriage before divorce
