@@ -17,7 +17,7 @@ using namespace std;
 // Array of valid tags
 string levelZeroTags[] = {"INDI", "FAM"};
 string IndiTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS"};
-string FamTags[] = {"CHIL", "DIV", "HUSB", "WIFE"};
+string FamTags[] = {"CHIL", "MARR", "DIV", "HUSB", "WIFE"};
 //"DATE", "HEAD", "TRLR"
 
 // Global Variables
@@ -231,7 +231,7 @@ int addIndi(int &index, string &line) {
     return 0;
 }
 
-bool addFam(int &index, string &line) {
+int addFam(int &index, string &line) {
     if (index < 0) {
         return -1;
     }
@@ -401,7 +401,6 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
  * Returns -1 if DateA is later than DateB
  * Returns  1 if DateA is earlier than DateB
  * Returns  0 if DateA is the same as DateB
- * Returns  0 if either DateA or Date B is missing
  */
 int getGreaterDate(int &date1, int &date2) {
     // Both dates have same value
@@ -508,7 +507,7 @@ bool checkValidBirth(Indi &indi) {
         int* marr = fam->get_marr();
         // Check that individual got married
         if (marr != NULL) {
-            if (dateCompare(birth, marr) > 0){
+            if (dateCompare(birth, marr) < 0){
                 // cout << "Error: Individual cannot be married before birth.\n";
                 cout << "Error US02: " << indi.get_name() << " (" << indi.get_id() << ") cannot be married before birth.\n";
                 isError = true;
@@ -639,6 +638,96 @@ bool checkSiblingSpacing(Fam &fam) {
     }
     if (isError)
         return false;
+    return true;
+}
+
+/*
+* Checks that individual was not married to two people at any point in time.
+*/
+bool checkBigamy (Indi &indi) {
+    vector <int> fams = indi.get_fams();
+    bool isError = false;
+    bool localError = false;
+
+    // Only need to test if spouse in more than one family
+    if( fams.size() > 1) {
+        for (std::vector<int>::iterator f1 = fams.begin(); f1 != --fams.end(); f1++) {
+            Fam* fam1 = FamArr[*f1];
+
+            // Get marriage and divorce dates for first family
+            int * marr1 = fam1->get_marr();
+            int * div1 = fam1->get_div();
+
+            for (std::vector<int>::iterator f2 = f1 + 1; f2 != fams.end(); f2++) {
+                localError = false;
+                Fam* fam2 = FamArr[*f2];
+
+                // Get marriage and divorce dates for second family
+                int * marr2 = fam2->get_marr();
+                int * div2 = fam2->get_div();
+
+                if (marr1[2] == 0 || marr2[2] == 0) {
+                    // One was not a marriage, don't need to check
+                    break;
+                }
+
+                // First marrage occurred first
+                if(dateCompare( marr1, marr2 )  > 0) {
+                    // Check that first divorce occurred before second marriage
+                    if (div1[2] == 0) {
+                        localError = true;
+                    }
+                    else if (dateCompare( div1, marr2 ) < 0) {
+                        localError = true;
+                    }
+                }
+                else {
+                    // Check that second divorce occurred before first marriage
+                    if (div2[2] == 0) {
+                        localError = true;
+                    }
+                    else if (dateCompare( div2, marr1) < 0) {
+                        localError = true;
+                    }
+                }
+
+                if (localError) {
+                    isError = true;
+                    cout << "Anomality US11: Individual " << indi.get_name() << " (" << indi.get_id() \
+                        << ") has been in two or more marriages at the same time.\n";
+                } 
+            }
+        }
+    }
+    if (isError)
+        return false;
+    return true;
+}
+
+/*
+* Checks that siblings are not married
+*/
+bool checkSiblingMarriage (Fam &fam) {
+    if (fam.get_wife() == -1 || fam.get_husb() == -1) {
+        return true;
+    }
+    
+    Indi* wife = IndiArr[fam.get_wife()];
+    Indi* husb = IndiArr[fam.get_husb()];
+
+    vector <int> wifeFam = wife->get_famc();
+    vector <int> husbFam = husb->get_famc();
+
+    // Famc arrays should usually only be one long
+    for (std::vector<int>::iterator w = wifeFam.begin(); w != wifeFam.end(); w++) {
+        for (std::vector<int>::iterator h = husbFam.begin(); h != husbFam.end(); h++) {
+            if (*w == *h){
+                cout << "Anomality US18: Siblings " << wife->get_name() << " (" << wife->get_id() \
+                    << ") and " << husb->get_name() << " (" << husb->get_id() << ") are married.\n";
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -784,6 +873,7 @@ void printIndiStats(ofstream &outputFile, int &currID) {
     // Corresponding entries
     isCorrespondingFamC(currID);
     isCorrespondingFamS(currID);
+    checkBigamy(*IndiArr[currID]);
 }
 
 /*
@@ -874,6 +964,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             }
             parentsNotTooOld(*FamArr[currID]);
             checkSiblingSpacing(*FamArr[currID]);
+            checkSiblingMarriage(*FamArr[currID]);
         }
     }
 }
