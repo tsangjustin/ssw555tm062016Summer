@@ -766,7 +766,27 @@ vector< vector<int> > getNieceNephew(vector<int>::iterator currSibling) {
     return allNieceNephew;
 }
 
-bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
+// Checks that parents aren't married to their descendants
+void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
+{
+	vector <int> famS = parent->get_fams();
+	for (vector<int>::iterator currFamS = famS.begin(); currFamS != famS.end(); currFamS++) {
+		vector<int> chil = FamArr[*currFamS]->get_chil();
+		for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
+			
+			Indi * child = IndiArr[*c];
+			if(child->get_id() == descendant->get_id()) {
+				cout << "Error parent is married to descendant. \n";
+				break;
+			}
+			else {
+				checkParentDescendantMarriage(child, descendant);
+			}
+		}
+	}
+}
+
+void checkAuntUncleRelation(Fam &fam, bool isUncle) {
     bool err20 = false;
     Indi* AuntUncle = ((isUncle) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
     int spouseIndex = ((isUncle) ? fam.get_wife() : fam.get_husb());
@@ -1000,15 +1020,20 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Husband died before being married.\n";
 				}
+				//Check if husband is male
 				if(IndiArr[memberID]->get_sex() != true) {
 					cout << "Error: Husband is not male.\n";
+				}
+				//Checks Husband isn't married to descendant
+				if(FamArr[currID]->get_wife() != -1) {
+				checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
 				}
             }
             memberID = FamArr[currID]->get_wife(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                 outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
-                // Check if spuse has corresponding Indi entry
+                // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
                     cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
@@ -1018,14 +1043,20 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Wife died before being married.\n";
 				}
+				//Check if wife is female
 				if(IndiArr[memberID]->get_sex() != false) {
 					cout << "Error: Wife is not female.\n";
+				}
+				//Checks Wife isn't married to descendant
+				if(FamArr[currID]->get_husb() != -1) {
+					checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_husb()]);
 				}
             }
 			//Checks for marriage before divorce
 			if(dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
 				cout << "Error: Family divorced before being married.\n";
 			}
+			
             // Check unique family by spouse names and marriage date
             checkUniqueFamS(currID, maxFam);
 
