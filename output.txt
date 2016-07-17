@@ -1,45 +1,81 @@
+
 INDI ID: @I1@
-Name: Justin
+Name: John /Smith/
+Gender: Male
+Birth date: 2/15/1984
+
 INDI ID: @I2@
-Name: Bob
+Name: Mary /Brown/
+Gender: Female
+Birth date: 10/27/1988
+
 INDI ID: @I3@
-Name: Robin
+Name: Elizabeth /Smith/
+Gender: Female
+Birth date: 7/10/2015
+
 INDI ID: @I4@
-Name: Jim
+Name: Mark /Brown/
+Gender: Male
+Birth date: 5/11/1958
+
 INDI ID: @I5@
-Name: Sammy
+Name: Magda /Moore/
+Gender: Female
+Birth date: 7/3/1968
+
 INDI ID: @I6@
-Name: Margaret
+Name: Penelope /Ash/
+Gender: Female
+Birth date: 10/31/1957
+
 INDI ID: @I7@
-Name: Joe
+Name: David /Brown/
+Gender: Male
+Birth date: 4/9/1993
+
 INDI ID: @I8@
-Name: Tricia
+Name: Joey /Brown/
+Gender: Male
+Birth date: 7/16/2000
+
 INDI ID: @I9@
-Name: Liz
+Name: Alexander /Smith/
+Gender: Male
+Birth date: 1/1/1951
+
 INDI ID: @I10@
-Name: John
+Name: Agatha /Apple/
+Gender: Female
+Birth date: 5/22/1954
+
 INDI ID: @I11@
-Name: George
+Name: Justin /Smith/
+Gender: Male
+Birth date: 10/5/1987
+
 INDI ID: @I12@
-Name: Timmy
+Name: Abby /Smith/
+Gender: Female
+Birth date: 7/10/2015
 FAM ID: @F1@
-Husband: Bob
-Wife: Robin
+Husband: John /Smith/
+Wife: Mary /Brown/
+Daughter: Elizabeth /Smith/
+Daughter: Abby /Smith/
 FAM ID: @F2@
-Husband: Joe
-Wife: Tricia
+Husband: Alexander /Smith/
+Wife: Agatha /Apple/
+Son: John /Smith/
+Son: Justin /Smith/
 FAM ID: @F3@
-Husband: Jim
-Wife: Robin
+Husband: Mark /Brown/
+Wife: Penelope /Ash/
+Daughter: Mary /Brown/
 FAM ID: @F4@
-Husband: Jim
-Wife: Margaret
+Husband: Mark /Brown/
+Wife: Magda /Moore/
+Son: Joey /Brown/
 FAM ID: @F5@
-Husband: John
-Wife: Liz
-FAM ID: @F6@
-Husband: Justin
-Wife: Liz
-FAM ID: @F7@
-Husband: Justin
-Wife: George
+Wife: Magda /Moore/
+Son: David /Brown/

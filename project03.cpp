@@ -963,12 +963,16 @@ void isCorrespondingFamS(int &currID) {
  * Function prints data of Indi onto console and outputFile
  */
 void printIndiStats(ofstream &outputFile, int &currID) {
+    int* birth = IndiArr[currID]->get_birth();
     cout << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
     cout << "Name: " << IndiArr[currID]->get_name() << "\n";
+    cout << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
+    cout << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
     //Add entries to output file
-    outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
+    outputFile << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
-    vector<int> famc = IndiArr[currID]->get_famc();
+    outputFile << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
+    outputFile << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
     // Check Valid Birth
     checkValidBirth(*IndiArr[currID]); 
     // Check for Younger Than 150
@@ -979,6 +983,29 @@ void printIndiStats(ofstream &outputFile, int &currID) {
     isCorrespondingFamC(currID);
     isCorrespondingFamS(currID);
     checkBigamy(*IndiArr[currID]);
+}
+
+void printFamilyMembers(ofstream &outputFile, Fam* family) {
+    // Print father's name
+    int memberID = family->get_husb(); 
+    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
+        cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+        outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+    }
+
+    // Print mother's name
+    memberID = family->get_wife();
+    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
+        cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+        outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+    }
+
+    vector<int> children = family->get_chil();
+    for (vector<int>::iterator chil = children.begin(); chil != children.end(); ++chil) {
+        Indi* kid = IndiArr[*chil];
+        cout << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
+        outputFile << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
+    }
 }
 
 /*
@@ -996,10 +1023,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
         if (FamArr[currID] != NULL) {
             cout << "\nFAM ID: " << FamArr[currID]->get_id() << "\n";
             outputFile << "FAM ID: " << FamArr[currID]->get_id() << "\n";
+            printFamilyMembers(outputFile, FamArr[currID]);
             int memberID = FamArr[currID]->get_husb(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
-                cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
-                outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
                     cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
@@ -1016,13 +1042,11 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
 				}
 				//Checks Husband isn't married to descendant
 				if(FamArr[currID]->get_wife() != -1) {
-				checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
+				    checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
 				}
             }
             memberID = FamArr[currID]->get_wife(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
-                cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
-                outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
                     cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
