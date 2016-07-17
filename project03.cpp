@@ -1033,15 +1033,15 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
 				//Check if husband was alive at time of marriage
-				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Husband died before being married.\n";
 				}
 				//Check if husband is male
-				if(IndiArr[memberID]->get_sex() != true) {
+				if (IndiArr[memberID]->get_sex() != true) {
 					cout << "Error: Husband is not male.\n";
 				}
 				//Checks Husband isn't married to descendant
-				if(FamArr[currID]->get_wife() != -1) {
+				if (FamArr[currID]->get_wife() != -1) {
 				    checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
 				}
             }
@@ -1054,20 +1054,20 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
 				//Check if wife was alive at time of marriage
-				if(dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
 					cout << "Error: Wife died before being married.\n";
 				}
 				//Check if wife is female
-				if(IndiArr[memberID]->get_sex() != false) {
+				if (IndiArr[memberID]->get_sex() != false) {
 					cout << "Error: Wife is not female.\n";
 				}
 				//Checks Wife isn't married to descendant
-				if(FamArr[currID]->get_husb() != -1) {
+				if (FamArr[currID]->get_husb() != -1) {
 					checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_husb()]);
 				}
             }
 			//Checks for marriage before divorce
-			if(dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
+			if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
 				cout << "Error: Family divorced before being married.\n";
 			}
 			
@@ -1092,8 +1092,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                                     break;
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             multBirthCount = 0;
                         }
                     }
