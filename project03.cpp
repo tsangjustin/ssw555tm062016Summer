@@ -756,6 +756,25 @@ void checkWedlock(Indi &indi) {
 	}
 }
 
+// Checks that parents aren't married to their descendants
+void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
+{
+	vector <int> famS = parent->get_fams();
+	for (vector<int>::iterator currFamS = famS.begin(); currFamS != famS.end(); currFamS++) {
+		vector<int> chil = FamArr[*currFamS]->get_chil();
+		for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
+			
+			Indi* child = IndiArr[*c];
+			if (child->get_id() == descendant->get_id()) {
+				cout << "Error parent is married to descendant. \n";
+				break;
+			} else {
+				checkParentDescendantMarriage(child, descendant);
+			}
+		}
+	}
+}
+
 vector< vector<int> > getNieceNephew(vector<int>::iterator currSibling) {
     vector< vector<int> > allNieceNephew;
     allNieceNephew.clear();
@@ -766,47 +785,28 @@ vector< vector<int> > getNieceNephew(vector<int>::iterator currSibling) {
     return allNieceNephew;
 }
 
-// Checks that parents aren't married to their descendants
-void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
-{
-	vector <int> famS = parent->get_fams();
-	for (vector<int>::iterator currFamS = famS.begin(); currFamS != famS.end(); currFamS++) {
-		vector<int> chil = FamArr[*currFamS]->get_chil();
-		for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
-			
-			Indi * child = IndiArr[*c];
-			if(child->get_id() == descendant->get_id()) {
-				cout << "Error parent is married to descendant. \n";
-				break;
-			}
-			else {
-				checkParentDescendantMarriage(child, descendant);
-			}
-		}
-	}
-}
-
-void checkAuntUncleRelation(Fam &fam, bool isUncle) {
+bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
     bool err20 = false;
     Indi* AuntUncle = ((isUncle) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
     int spouseIndex = ((isUncle) ? fam.get_wife() : fam.get_husb());
-    vector<int> AuntUnclefamC = AuntUncle->get_famc();
-    for (vector<int>::iterator currFamC = AuntUnclefamC.begin(); currFamC != AuntUnclefamC.end(); ++currFamC) {
-        vector<int> AuntUncleSiblings = FamArr[*currFamC]->get_chil();
-        // Not only child
-        if (AuntUncleSiblings.size() > 1) {
-            for (vector<int>::iterator currSibling = AuntUncleSiblings.begin(); currSibling != AuntUncleSiblings.end(); ++currSibling) {
-                int AuntUncleIndex = ((isUncle) ? fam.get_husb() : fam.get_wife());
-                if (*currSibling != AuntUncleIndex) {
-                    vector< vector<int> > siblingFamSpouse = getNieceNephew(currSibling);
-                    for (vector< vector<int> >::iterator currFamChild = siblingFamSpouse.begin(); currFamChild != siblingFamSpouse.end(); ++currFamChild) {
-                        for (vector<int>::iterator currNieceNephew = (*currFamChild).begin(); currNieceNephew != (*currFamChild).end(); ++currNieceNephew) {
-                            if ((*currNieceNephew) == spouseIndex) {
-                                cout << "Error US20: " << ((AuntUncle->get_sex()) ? "Uncle " : "Aunt ")  << AuntUncle->get_name() << "(" << AuntUncle->get_id() <<
-                                        ") is married to " << ((IndiArr[*currNieceNephew]->get_sex()) ? "nephew " : "niece ") << IndiArr[*currNieceNephew]->get_name() <<
-                                        "(" << IndiArr[*currNieceNephew]->get_id() << ")\n";
-                                err20 = true;
-                            }
+    if ((AuntUncle->get_famc().size()) <= 0) {
+        return false;
+    }
+    int AuntUnclefamC = (AuntUncle->get_famc()).at(0);
+    vector<int> AuntUncleSiblings = FamArr[AuntUnclefamC]->get_chil();
+    // Not only child
+    if (AuntUncleSiblings.size() > 1) {
+        for (vector<int>::iterator currSibling = AuntUncleSiblings.begin(); currSibling != AuntUncleSiblings.end(); ++currSibling) {
+            int AuntUncleIndex = ((isUncle) ? fam.get_husb() : fam.get_wife());
+            if (*currSibling != AuntUncleIndex) {
+                vector< vector<int> > siblingFamSpouse = getNieceNephew(currSibling);
+                for (vector< vector<int> >::iterator currFamChild = siblingFamSpouse.begin(); currFamChild != siblingFamSpouse.end(); ++currFamChild) {
+                    for (vector<int>::iterator currNieceNephew = (*currFamChild).begin(); currNieceNephew != (*currFamChild).end(); ++currNieceNephew) {
+                        if ((*currNieceNephew) == spouseIndex) {
+                            cout << "Error US20: " << ((AuntUncle->get_sex()) ? "Uncle " : "Aunt ")  << AuntUncle->get_name() << "(" << AuntUncle->get_id() <<
+                                    ") is married to " << ((IndiArr[*currNieceNephew]->get_sex()) ? "nephew " : "niece ") << IndiArr[*currNieceNephew]->get_name() <<
+                                    "(" << IndiArr[*currNieceNephew]->get_id() << ")\n";
+                            err20 = true;
                         }
                     }
                 }
@@ -819,15 +819,18 @@ void checkAuntUncleRelation(Fam &fam, bool isUncle) {
 bool checkCousingRelation(Fam &fam, bool isHusb) {
     bool err19 = false;
     // Get famc parents
+    Indi* cousin = ((isHusb) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
+    int spouseIndex = ((isHusb) ? fam.get_wife() : fam.get_husb());
     vector<int> parents;
     parents.clear();
-    cousin = ((isHusb) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
-    int spouseIndex = ((isHusb) ? fam.get_wife() : fam.get_husb());
-    parents.push_back(FamArr[fam.get_famc()]->get_husb());
-    parents.push_back(FamArr[fam.get_famc()]->get_wife());
+    if ((cousin->get_famc()).size() <= 0) {
+        return false;
+    }
+    parents.push_back(FamArr[(cousin->get_famc()).at(0)]->get_husb());
+    parents.push_back(FamArr[(cousin->get_famc()).at(0)]->get_wife());
     for (vector<int>::iterator parent = parents.begin(); parent != parents.end(); ++parent) {
-        vector<int> AuntUncle = FamArr[FamArr[*parent]->get_famc()]->get_chil();
-        for (vector<int>::iterator currSibling = ) {
+        vector<int> AuntUncle = FamArr[(IndiArr[*parent]->get_famc()).at(0)]->get_chil();
+        for (vector<int>::iterator currSibling = AuntUncle.begin(); currSibling != AuntUncle.end(); ++currSibling) {
             
         }
     }
@@ -844,35 +847,9 @@ bool checkFirstRelativeMarriage(Fam &fam) {
     checkAuntUncleRelation(fam, false);
 
     // Check cousin relations
-    checkCousingRelation(fam, true);
-    checkCousingRelation(fam, false);
+    // checkCousingRelation(fam, true);
+    // checkCousingRelation(fam, false);
 
-    // Check if uncle married niece
-    // vector<int> husbFamC = husb->get_famc();
-    // // Iterate all family hustand child of
-    // for (vector<int>::iterator currFamC = husbFamC.begin(); currFamC != husbFamC.end(); ++currFamC) {
-    //     vector<int> husbSibling = FamArr[*currFamC]->get_chil();
-    //     // Not only child
-    //     if (husbSibling.size() > 1) {
-    //         // Check the children of husband's siblings
-    //         for (vector<int>::iterator currSibling = husbSibling.begin(); currSibling != husbSibling.end(); ++currSibling) {
-    //             if (*currSibling != fam.get_husb()) {
-    //                 // Iterate through family sibling spouse of
-    //                 vector<int> siblingFamSpouse = IndiArr[*currSibling]->get_fams();
-    //                 for (vector<int>::iterator currFamS = siblingFamSpouse.begin(); currFamS != siblingFamSpouse.end(); ++currFamS) {
-    //                     vector<int> NieceAndNephew = FamArr[*currFamS]->get_chil();
-    //                     for (vector<int>::iterator currNieceNephew = NieceAndNephew.begin(); currNieceNephew != NieceAndNephew.end(); ++currNieceNephew) {
-    //                         cout << fam.get_husb() << " " << *currNieceNephew << endl;
-    //                         if ((*currNieceNephew) == fam.get_wife()) {
-    //                             cout << "Error US21: Uncle " << husb->get_name() << "(" << husb->get_id() << ") is married to niece " <<
-    //                                     IndiArr[*currNieceNephew]->get_name() << "(" << IndiArr[*currNieceNephew]->get_id() << ")\n";
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     return hasRelation; 
 }
 
@@ -979,6 +956,7 @@ void printIndiStats(ofstream &outputFile, int &currID) {
     //Add entries to output file
     outputFile << "INDI ID: " << IndiArr[currID]->get_id() << "\n";
     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
+    vector<int> famc = IndiArr[currID]->get_famc();
     // Check Valid Birth
     checkValidBirth(*IndiArr[currID]); 
     // Check for Younger Than 150

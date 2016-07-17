@@ -1,38 +1,42 @@
 INDI ID: @I1@
-Name: John /Smith/
+Name: Justin
 INDI ID: @I2@
-Name: Mary /Brown/
+Name: Bob
 INDI ID: @I3@
-Name: Elizabeth /Smith/
+Name: Robin
 INDI ID: @I4@
-Name: Mark /Brown/
+Name: Jim
 INDI ID: @I5@
-Name: Magda /Moore/
+Name: Sammy
 INDI ID: @I6@
-Name: Penelope /Ash/
+Name: Margaret
 INDI ID: @I7@
-Name: David /Brown/
+Name: Joe
 INDI ID: @I8@
-Name: Joey /Brown/
+Name: Tricia
 INDI ID: @I9@
-Name: Alexander /Smith/
+Name: Liz
 INDI ID: @I10@
-Name: Agatha /Apple/
+Name: John
 INDI ID: @I11@
-Name: Justin /Smith/
+Name: George
 INDI ID: @I12@
-Name: Abby /Smith/
+Name: Timmy
 FAM ID: @F1@
-Husband: John /Smith/
-Wife: Mary /Brown/
+Husband: Bob
+Wife: Robin
 FAM ID: @F2@
-Husband: Alexander /Smith/
-Wife: John /Smith/
+Husband: Joe
+Wife: Tricia
 FAM ID: @F3@
-Husband: Mark /Brown/
-Wife: Elizabeth /Smith/
+Husband: Jim
+Wife: Robin
 FAM ID: @F4@
-Husband: Mark /Brown/
-Wife: Magda /Moore/
+Husband: Jim
+Wife: Margaret
 FAM ID: @F5@
-Wife: Magda /Moore/
+Husband: John
+Wife: Liz
+FAM ID: @F6@
+Husband: Justin
+Wife: Liz
