@@ -1,0 +1,87 @@
+
+INDI ID: @I1@
+Name: Justin
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I2@
+Name: Bob
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I3@
+Name: Robin
+Gender: Female
+Birth date: 0/0/0
+
+INDI ID: @I4@
+Name: Jim
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I5@
+Name: Sammy
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I6@
+Name: Margaret
+Gender: Female
+Birth date: 0/0/0
+
+INDI ID: @I7@
+Name: Joe
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I8@
+Name: Tricia
+Gender: Female
+Birth date: 0/0/0
+
+INDI ID: @I9@
+Name: Liz
+Gender: Female
+Birth date: 0/0/0
+
+INDI ID: @I10@
+Name: John
+Gender: Male
+Birth date: 0/0/0
+
+INDI ID: @I11@
+Name: George
+Gender: Female
+Birth date: 0/0/0
+
+INDI ID: @I12@
+Name: Timmy
+Gender: Male
+Birth date: 0/0/0
+FAM ID: @F1@
+Husband: Bob
+Wife: Robin
+Son: Justin
+Son: Timmy
+FAM ID: @F2@
+Husband: Joe
+Wife: Tricia
+Son: Bob
+Daughter: Liz
+FAM ID: @F3@
+Husband: Jim
+Wife: Robin
+FAM ID: @F4@
+Husband: Jim
+Wife: Margaret
+Son: Sammy
+FAM ID: @F5@
+Husband: John
+Wife: Liz
+Daughter: George
+FAM ID: @F6@
+Husband: Justin
+Wife: Liz
+FAM ID: @F7@
+Husband: Justin
+Wife: George

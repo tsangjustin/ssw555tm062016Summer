@@ -453,12 +453,13 @@ bool checkValidBirth(Indi &indi) {
     }
 
     // Individual was born before their parents died
-    vector <int> famc = indi.get_famc();
-    for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
-        Fam *fam = FamArr[*f];
+    vector<int> famc = indi.get_famc();
+    for (vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
+        Fam* fam = FamArr[*f];
 
         // Cannot be born after death of mother
         if (fam->get_wife() != -1) { //Check if mom on record
+    cout << "Done" << endl;
             Indi* mom = IndiArr[fam->get_wife()];
 
             int* momDeath = mom->get_death();
