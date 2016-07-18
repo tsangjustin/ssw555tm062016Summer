@@ -821,12 +821,12 @@ bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
 
 /* Check if family is marriage between cousins */
 bool checkCousinRelation(Fam &fam, bool isHusb) {
-    bool err19 = false;
     Indi* cousin = ((isHusb) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
-    int spouseIndex = ((isHusb) ? fam.get_wife() : fam.get_husb());
     if ((cousin->get_famc()).size() <= 0) {
         return false;
     }
+    bool err19 = false;
+    int spouseIndex = ((isHusb) ? fam.get_wife() : fam.get_husb());
     // Get famc parents
     vector<int> parents;
     parents.clear();
