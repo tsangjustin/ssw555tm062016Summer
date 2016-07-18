@@ -833,7 +833,7 @@ bool checkCousinRelation(Fam &fam, bool isHusb) {
     parents.push_back(FamArr[(cousin->get_famc()).at(0)]->get_husb());
     parents.push_back(FamArr[(cousin->get_famc()).at(0)]->get_wife());
     for (vector<int>::iterator parent = parents.begin(); parent != parents.end(); ++parent) {
-        if ((IndiArr[*parent]->get_famc()).size() > 0) {
+        if ((*parent > -1) && ((IndiArr[*parent]->get_famc()).size() > 0)) {
             vector<int> parentsSiblings = FamArr[(IndiArr[*parent]->get_famc()).at(0)]->get_chil();
             vector< vector<int> > allCousins = getNieceNephew(parentsSiblings, *parent);
             for (vector< vector<int> >::iterator currFamChild = allCousins.begin(); currFamChild != allCousins.end(); ++currFamChild) {

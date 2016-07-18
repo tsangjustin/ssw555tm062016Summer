@@ -1,87 +1,105 @@
 
 INDI ID: @I1@
-Name: Justin
-Gender: Male
-Birth date: 0/0/0
+Name: SiblingA NotMarr
+Gender: Female
+Birth date: 2/15/1984
 
 INDI ID: @I2@
-Name: Bob
+Name: SiblingB NotMarr
 Gender: Male
-Birth date: 0/0/0
+Birth date: 3/20/1990
 
 INDI ID: @I3@
-Name: Robin
-Gender: Female
-Birth date: 0/0/0
+Name: SiblingC Marr
+Gender: Male
+Birth date: 3/5/1985
 
 INDI ID: @I4@
-Name: Jim
-Gender: Male
-Birth date: 0/0/0
+Name: SiblingD Marr
+Gender: Female
+Birth date: 3/20/1990
 
 INDI ID: @I5@
-Name: Sammy
-Gender: Male
-Birth date: 0/0/0
+Name: IndiE Bigamy
+Gender: Female
+Birth date: 3/20/1990
 
 INDI ID: @I6@
-Name: Margaret
-Gender: Female
-Birth date: 0/0/0
+Name: IndiF Bigamy
+Gender: Male
+Birth date: 8/20/1990
 
 INDI ID: @I7@
-Name: Joe
+Name: IndiG Bigamy
 Gender: Male
-Birth date: 0/0/0
+Birth date: 1/20/1979
 
 INDI ID: @I8@
-Name: Tricia
+Name: IndiH Bigamy
 Gender: Female
-Birth date: 0/0/0
+Birth date: 8/20/1978
 
 INDI ID: @I9@
-Name: Liz
+Name: IndiI Bigamy
 Gender: Female
-Birth date: 0/0/0
+Birth date: 8/20/1981
 
 INDI ID: @I10@
-Name: John
+Name: IndiJ Bigamy
 Gender: Male
-Birth date: 0/0/0
+Birth date: 11/20/1979
 
 INDI ID: @I11@
-Name: George
+Name: IndiK Bigamy
 Gender: Female
-Birth date: 0/0/0
+Birth date: 12/20/1978
 
 INDI ID: @I12@
-Name: Timmy
+Name: IndiL Bigamy
+Gender: Female
+Birth date: 12/20/1981
+
+INDI ID: @I13@
+Name: IndiM Bigamy
 Gender: Male
-Birth date: 0/0/0
+Birth date: 11/20/1978
+
+INDI ID: @I14@
+Name: IndiN Bigamy
+Gender: Female
+Birth date: 12/20/1976
+
+INDI ID: @I15@
+Name: IndiO Bigamy
+Gender: Female
+Birth date: 12/20/1982
 FAM ID: @F1@
-Husband: Bob
-Wife: Robin
-Son: Justin
-Son: Timmy
+Daughter: SiblingA NotMarr
+Son: SiblingB NotMarr
 FAM ID: @F2@
-Husband: Joe
-Wife: Tricia
-Son: Bob
-Daughter: Liz
+Son: SiblingC Marr
+Daughter: SiblingD Marr
 FAM ID: @F3@
-Husband: Jim
-Wife: Robin
+Husband: SiblingC Marr
+Wife: SiblingD Marr
 FAM ID: @F4@
-Husband: Jim
-Wife: Margaret
-Son: Sammy
+Husband: IndiF Bigamy
+Wife: IndiE Bigamy
 FAM ID: @F5@
-Husband: John
-Wife: Liz
-Daughter: George
+Husband: IndiG Bigamy
+Wife: IndiH Bigamy
 FAM ID: @F6@
-Husband: Justin
-Wife: Liz
+Husband: IndiG Bigamy
+Wife: IndiI Bigamy
 FAM ID: @F7@
-Husband: Justin
-Wife: George
+Husband: IndiJ Bigamy
+Wife: IndiK Bigamy
+FAM ID: @F8@
+Husband: IndiJ Bigamy
+Wife: IndiL Bigamy
+FAM ID: @F9@
+Husband: IndiM Bigamy
+Wife: IndiN Bigamy
+FAM ID: @F10@
+Husband: IndiM Bigamy
+Wife: IndiO Bigamy
