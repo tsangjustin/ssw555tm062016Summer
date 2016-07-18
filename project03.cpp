@@ -838,7 +838,7 @@ bool checkCousinRelation(Fam &fam, bool isHusb) {
             for (vector< vector<int> >::iterator currFamChild = allCousins.begin(); currFamChild != allCousins.end(); ++currFamChild) {
                 for (vector<int>::iterator currCousin = (*currFamChild).begin(); currCousin != (*currFamChild).end(); ++currCousin) {
                     if ((*currCousin) == spouseIndex) {
-                        cout << "Error US2019: " << cousin->get_name() << "(" << cousin->get_id() << ") and " <<
+                        cout << "Error US19: " << cousin->get_name() << "(" << cousin->get_id() << ") and " <<
                                 IndiArr[*currCousin]->get_name() <<"(" << IndiArr[*currCousin]->get_id() << ") are married cousins\n";
                         err19 = true;
                     }
@@ -849,6 +849,7 @@ bool checkCousinRelation(Fam &fam, bool isHusb) {
     return err19;
 }
 
+/* Function checks if any direct relatives are married */
 bool checkFirstRelativeMarriage(Fam &fam) {
     if (fam.get_wife() == -1 || fam.get_husb() == -1) {
         return true;
