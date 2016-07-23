@@ -1013,8 +1013,54 @@ void printFamilyMembers(ofstream &outputFile, Fam* family) {
 /*
  * Function prints value for Indi and Fam onto output screen
  */
+// TODO: Tabulate the INDI and FAM info print to screen
+/*
+-For name get longest name of all inputted
+-NULL if does not xist
+
+|         ID       |   NAME    | GENDER | BIRTH DATE | DEATH DATE |
+|__________________|___________|________|____________|____________|
+|                  |           |        |            |            |
+
+
+
+ID | HUSB ID | WIFE ID | 
+
+
+*/
+
+int getAmtIndi() {
+    int len = 0;
+    int amtIndi = IndiArr.size();
+    while (amtIndi > 0) {
+        amtIndi /= 10;
+        ++len;
+    }
+    return len;
+}
+
+void printHeader() {
+    int lenColumn = 0;
+    // Get amount of Indi ID
+    lenColumn = getAmtIndi();
+    if ((lenColumn % 2) == 1) {
+        ++lenColumn;
+    }
+    lenColumn = (lenColumn - 4) / 2;
+    cout << "| ";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << "ID";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << " | NAME";
+}
+
 void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
     cout << "Printing...\n";
+    printHeader();
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
