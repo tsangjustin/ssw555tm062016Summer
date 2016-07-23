@@ -459,7 +459,6 @@ bool checkValidBirth(Indi &indi) {
 
         // Cannot be born after death of mother
         if (fam->get_wife() != -1) { //Check if mom on record
-    cout << "Done" << endl;
             Indi* mom = IndiArr[fam->get_wife()];
 
             int* momDeath = mom->get_death();
