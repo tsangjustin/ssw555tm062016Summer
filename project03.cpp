@@ -184,7 +184,8 @@ int createIndiFam(bool &isIndi, string &id) {
 }
 
 // Add values to constructors
-int addIndi(int &index, string &line) {
+int addIndi(int &index, string &line, int &longestName) {
+    // TODO: Implement check for longest name for tabulate output
     if (index < 0) {
         return -1;
     }
@@ -1183,6 +1184,7 @@ int main() {
             string line;
             int maxIndi = 0;
             int maxFam = 0;
+            int longestName = 0;
             bool isIndi = true;
             int currIndex = 0; // Index of current data point
             vector<string> parsed;
@@ -1219,7 +1221,7 @@ int main() {
                     }
                 } else if (line[0] == '1') {
                     if (isIndi) {
-                        returnValue = addIndi(currIndex, line);
+                        returnValue = addIndi(currIndex, line, longestName);
                     } else {
                         returnValue = addFam(currIndex, line);
                     }
