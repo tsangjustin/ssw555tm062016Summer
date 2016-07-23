@@ -742,16 +742,16 @@ void checkWedlock(Indi &indi) {
 		if (family == NULL) {
 			if (family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
 				if(dateCompare(birth, family->get_marr()) == 1) {
-					cout << "Error: Child born out of wedlock. \n";
+					cout << "Error US08: Child born out of wedlock. \n";
 				} else {
 					if (family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
 						if (dateCompare(birth, family->get_div()) == -1) {
-							cout << "Error: Child born out of wedlock. \n";
+							cout << "Error US08: Child born out of wedlock. \n";
 						}
 					}
 				}
 			} else {
-				cout << "Error: Child born out of wedlock. \n";
+				cout << "Error US08: Child born out of wedlock. \n";
 			}
 		}
 	}
@@ -767,7 +767,7 @@ void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
 			
 			Indi* child = IndiArr[*c];
 			if (child->get_id() == descendant->get_id()) {
-				cout << "Error parent is married to descendant. \n";
+				cout << "Error US17: parent is married to descendant. \n";
 				break;
 			} else {
 				checkParentDescendantMarriage(child, descendant);
@@ -915,7 +915,7 @@ bool olderThan150(int *birth, int *death) {
 		retComp = false;
 	}
 	if (retComp == true) {
-		cout << "Error: Individual should be less than 150 years old.\n";
+		cout << "Error US07: Individual should be less than 150 years old.\n";
 	}
 	return retComp;
 }
@@ -1036,11 +1036,11 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                 }
 				//Check if husband was alive at time of marriage
 				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-					cout << "Error: Husband died before being married.\n";
+					cout << "Error US05: Husband died before being married.\n";
 				}
 				//Check if husband is male
 				if (IndiArr[memberID]->get_sex() != true) {
-					cout << "Error: Husband is not male.\n";
+					cout << "Error US21: Husband is not male.\n";
 				}
 				//Checks Husband isn't married to descendant
 				if (FamArr[currID]->get_wife() != -1) {
@@ -1057,11 +1057,11 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                 }
 				//Check if wife was alive at time of marriage
 				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-					cout << "Error: Wife died before being married.\n";
+					cout << "Error US05: Wife died before being married.\n";
 				}
 				//Check if wife is female
 				if (IndiArr[memberID]->get_sex() != false) {
-					cout << "Error: Wife is not female.\n";
+					cout << "Error US21: Wife is not female.\n";
 				}
 				//Checks Wife isn't married to descendant
 				if (FamArr[currID]->get_husb() != -1) {
@@ -1070,7 +1070,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
             }
 			//Checks for marriage before divorce
 			if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
-				cout << "Error: Family divorced before being married.\n";
+				cout << "Error US04: Family divorced before being married.\n";
 			}
 			
             // Check unique family by spouse names and marriage date
@@ -1101,7 +1101,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
                 }
             }
             if (multBirthCount > 5) {
-                cout << "Error: Too Many Children Born at Once. \n";
+                cout << "Error US14: Too Many Children Born at Once. \n";
             }
             parentsNotTooOld(*FamArr[currID]);
             checkSiblingSpacing(*FamArr[currID]);

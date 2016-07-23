@@ -1,87 +1,173 @@
 
 INDI ID: @I1@
-Name: Justin
+Name: John /Smith/
 Gender: Male
-Birth date: 0/0/0
+Birth date: 2/15/1984
 
 INDI ID: @I2@
-Name: Bob
-Gender: Male
-Birth date: 0/0/0
+Name: Mary /Brown/
+Gender: Female
+Birth date: 10/27/1988
 
 INDI ID: @I3@
-Name: Robin
+Name: Elizabeth /Smith/
 Gender: Female
-Birth date: 0/0/0
+Birth date: 7/10/2015
 
 INDI ID: @I4@
-Name: Jim
-Gender: Male
-Birth date: 0/0/0
+Name: Mark /Brown/
+Gender: Female
+Birth date: 5/11/1958
 
 INDI ID: @I5@
-Name: Sammy
+Name: Magda /Moore/
 Gender: Male
-Birth date: 0/0/0
+Birth date: 7/3/1968
 
 INDI ID: @I6@
-Name: Margaret
+Name: Penelope /Ash/
 Gender: Female
-Birth date: 0/0/0
+Birth date: 10/31/1957
 
 INDI ID: @I7@
-Name: Joe
+Name: David /Brown/
 Gender: Male
-Birth date: 0/0/0
+Birth date: 4/0/1993
 
 INDI ID: @I8@
-Name: Tricia
-Gender: Female
-Birth date: 0/0/0
+Name: Joey /Brown/
+Gender: Male
+Birth date: 7/16/20
 
 INDI ID: @I9@
-Name: Liz
-Gender: Female
-Birth date: 0/0/0
+Name: Alexander /Smith/
+Gender: Male
+Birth date: 1/1/1951
 
 INDI ID: @I10@
-Name: John
-Gender: Male
-Birth date: 0/0/0
+Name: Agatha /Apple/
+Gender: Female
+Birth date: 5/22/1954
 
 INDI ID: @I11@
-Name: George
+Name: Justin /Smith/
+Gender: Male
+Birth date: 10/5/1984
+
+INDI ID: @I12@
+Name: Abby /Smith/
+Gender: Female
+Birth date: 7/10/2015
+
+INDI ID: @I13@
+Name: Joe /Smith/
+Gender: Male
+Birth date: 7/15/1866
+
+INDI ID: @I14@
+Name: May /Brown/
+Gender: Female
+Birth date: 10/27/1988
+
+INDI ID: @I15@
+Name: Joshua /Smith/
+Gender: Male
+Birth date: 7/10/2015
+
+INDI ID: @I16@
+Name: Sarah /Smith/
+Gender: Female
+Birth date: 7/10/2015
+
+INDI ID: @I17@
+Name: Harold /Smith/
+Gender: Male
+Birth date: 7/10/2015
+
+INDI ID: @I18@
+Name: Jonathan /Smith/
+Gender: Male
+Birth date: 7/10/2015
+
+INDI ID: @I19@
+Name: Joanna /Smith/
+Gender: Female
+Birth date: 7/10/2015
+
+INDI ID: @I20@
+Name: Jane /Smith/
 Gender: Female
 Birth date: 0/0/0
 
-INDI ID: @I12@
-Name: Timmy
+INDI ID: @I21@
+Name: Leslie /Smith/
+Gender: Female
+Birth date: 7/10/2016
+
+INDI ID: @I22@
+Name: Johnny /Drew/
 Gender: Male
-Birth date: 0/0/0
+Birth date: 7/11/2014
+
+INDI ID: @I23@
+Name: Robert /Drew/
+Gender: Male
+Birth date: 7/10/2015
+
+INDI ID: @I24@
+Name: Robert /Drew/
+Gender: Male
+Birth date: 7/10/1988
+
+INDI ID: @I25@
+Name: Leslie /Smith/
+Gender: Female
+Birth date: 7/10/1999
 FAM ID: @F1@
-Husband: Bob
-Wife: Robin
-Son: Justin
-Son: Timmy
+Husband: John /Smith/
+Wife: Mary /Brown/
+Daughter: Elizabeth /Smith/
+Daughter: Abby /Smith/
 FAM ID: @F2@
-Husband: Joe
-Wife: Tricia
-Son: Bob
-Daughter: Liz
+Husband: Alexander /Smith/
+Wife: Mary /Brown/
+Son: John /Smith/
+Son: Justin /Smith/
 FAM ID: @F3@
-Husband: Jim
-Wife: Robin
+Husband: Mark /Brown/
+Wife: Elizabeth /Smith/
+Daughter: Mary /Brown/
 FAM ID: @F4@
-Husband: Jim
-Wife: Margaret
-Son: Sammy
+Husband: Mark /Brown/
+Wife: Magda /Moore/
+Son: Joey /Brown/
 FAM ID: @F5@
-Husband: John
-Wife: Liz
-Daughter: George
+Wife: Magda /Moore/
+Son: David /Brown/
 FAM ID: @F6@
-Husband: Justin
-Wife: Liz
+Husband: Joe /Smith/
+Wife: May /Brown/
+Daughter: Elizabeth /Smith/
+Son: Joshua /Smith/
+Daughter: Sarah /Smith/
+Son: Harold /Smith/
+Son: Jonathan /Smith/
+Daughter: Joanna /Smith/
+Daughter: Jane /Smith/
 FAM ID: @F7@
-Husband: Justin
-Wife: George
+Husband: Harold /Smith/
+Wife: Jane /Smith/
+Daughter: Leslie /Smith/
+FAM ID: @F8@
+Husband: Jonathan /Smith/
+Wife: Leslie /Smith/
+FAM ID: @F9@
+Husband: Johnny /Drew/
+Wife: Sarah /Smith/
+Son: Robert /Drew/
+FAM ID: @10@
+Husband: Robert /Drew/
+Wife: Leslie /Smith/
+FAM ID: @11@
+Husband: Robert /Drew/
+Wife: Leslie /Smith/
