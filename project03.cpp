@@ -711,9 +711,9 @@ bool checkBigamy(Indi &indi) {
                 }
 
                 if (localError) {
+                    cout << "Anomality US11: " << indi.get_name() << " (" << indi.get_id() <<
+                            ") has been in two or more marriages at the same time.\n";
                     isError = true;
-                    cout << "Anomality US11: Individual " << indi.get_name() << " (" << indi.get_id() \
-                        << ") has been in two or more marriages at the same time.\n";
                 } 
             }
         }
@@ -933,9 +933,6 @@ bool olderThan150(int *birth, int *death) {
 		}
 	} else {
 		retComp = false;
-	}
-	if (retComp == true) {
-		cout << "Error US07: Individual should be less than 150 years old.\n";
 	}
 	return retComp;
 }
@@ -1369,7 +1366,10 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             // Check Valid Birth
             checkValidBirth(*IndiArr[currID]); 
             // Check for Younger Than 150
-            olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
+            if (olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death())) {
+                cout << "Error US07: " << IndiArr[currID]->get_name() << " (" << IndiArr[currID]->get_id() <<
+                        ") should be less than 150 years old.\n";
+            }
             // Check Individual Not Born Out of Wedlock
             checkWedlock(*IndiArr[currID]);
             // Corresponding entries
