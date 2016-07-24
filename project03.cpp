@@ -666,7 +666,7 @@ bool checkSiblingSpacing(Fam &fam) {
 /*
 * Checks that individual was not married to two people at any point in time.
 */
-bool checkBigamy (Indi &indi) {
+bool checkBigamy(Indi &indi) {
     vector <int> fams = indi.get_fams();
     bool isError = false;
     bool localError = false;
@@ -680,7 +680,7 @@ bool checkBigamy (Indi &indi) {
             int * marr1 = fam1->get_marr();
             int * div1 = fam1->get_div();
 
-            for (std::vector<int>::iterator f2 = f1 + 1; f2 != fams.end(); f2++) {
+            for (vector<int>::iterator f2 = f1 + 1; f2 != fams.end(); f2++) {
                 localError = false;
                 Fam* fam2 = FamArr[*f2];
 
@@ -694,21 +694,18 @@ bool checkBigamy (Indi &indi) {
                 }
 
                 // First marrage occurred first
-                if(dateCompare( marr1, marr2 )  > 0) {
+                if (dateCompare(marr1, marr2) > 0) {
                     // Check that first divorce occurred before second marriage
                     if (div1[2] == 0) {
                         localError = true;
-                    }
-                    else if (dateCompare( div1, marr2 ) < 0) {
+                    } else if (dateCompare( div1, marr2 ) < 0) {
                         localError = true;
                     }
-                }
-                else {
+                } else {
                     // Check that second divorce occurred before first marriage
                     if (div2[2] == 0) {
                         localError = true;
-                    }
-                    else if (dateCompare( div2, marr1) < 0) {
+                    } else if (dateCompare( div2, marr1) < 0) {
                         localError = true;
                     }
                 }
@@ -1066,6 +1063,26 @@ void printFamilyMembers(ofstream &outputFile, Fam* family) {
     }
 }
 
+int getLongestFamily(int &maxFam) {
+    int longestFam = 0;
+    for (int f = 0; f <= maxFam; ++f) {
+        if (FamArr[f] != NULL) {
+            int lenChil = 0;
+            vector<int> children = FamArr[f]->get_chil();
+            if (children.size() > 0) {
+                for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
+                    lenChil += getAmtIndi(*c);
+                }
+                lenChil += children.size() - 1;
+                if (longestFam < lenChil) {
+                    longestFam = lenChil;
+                }
+            }
+        }
+    }
+    return longestFam;
+}
+
 void printFamStats(ofstream &outputFile, int &currID) {
     int* marr = FamArr[currID]->get_marr();
     int* divorce = FamArr[currID]->get_div();
@@ -1075,25 +1092,50 @@ void printFamStats(ofstream &outputFile, int &currID) {
     for (remainSpace = lenID; remainSpace < colID; ++remainSpace) {
         cout << " ";
     }
-    cout << " | " << FamArr[currID]->get_husb();
     int id = FamArr[currID]->get_husb();
-    lenID = getAmtIndi(id);
+    cout << " | ";
+    if (id < 0) {
+        cout << "NULL";
+        lenID = 4;
+    } else {
+        cout << id;
+        lenID = getAmtIndi(id);
+    }
     for (remainSpace = lenID; remainSpace < colHusb; ++remainSpace) {
         cout << " ";
     }
-    cout << " | " << FamArr[currID]->get_wife();
     id = FamArr[currID]->get_wife();
-    for (remainSpace = lenID; remainSpace < colHusb; ++remainSpace) {
+    cout << " | ";
+    if (id < 0) {
+        cout << "NULL";
+        lenID = 4;
+    } else {
+        cout << id;
+        lenID = getAmtIndi(id);
+    }
+    for (remainSpace = lenID; remainSpace < colWife; ++remainSpace) {
         cout << " ";
     }
     cout << " |";
     // TODO: Print all children
-    vector<int> children = FamArr[currID]->get_chil();
-    string strChildren;
-    for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
-        cout << " " << *c;
-    }
     stringstream buffer;
+    vector<int> children = FamArr[currID]->get_chil();
+    string strChildren = "";
+    if (children.size() <= 0) {
+        strChildren = " NULL";
+    } else {
+        for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
+            string temp;
+            buffer << *c;
+            buffer >> temp;
+            buffer.clear();
+            strChildren += " " + temp;
+        }
+    }
+    cout << strChildren;
+    for (remainSpace = strChildren.length() - 1; remainSpace < colChil; ++remainSpace) {
+        cout << " ";
+    }
     string stringDate;
     if ((marr[0] == 0) && (marr[1] == 0) && (marr[2] == 0)) {
         stringDate = "NULL";
@@ -1214,9 +1256,18 @@ void printFamHeader(ofstream &outputFile, int &maxFam) {
     cout << " | HUSB ID  |";
     cout << " WIFE ID  | ";
     // TODO: Reformat CHILDREN ID BAsed on # Children
-    stringstream buffer;
-
-    cout << "CHILDREN ID";
+    colChil = getLongestFamily(maxFam);
+    if ((colChil % 2) == 1) {
+        ++colChil;
+    }
+    lenColumn = (colChil - 12) / 2;
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " ";
+    }
+    cout << "CHILDREN ID ";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " ";
+    }
     cout << " | MARR DATE  |";
     cout << "  DIV DATE  |\n";
     int i;
