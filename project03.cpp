@@ -1066,6 +1066,60 @@ void printFamilyMembers(ofstream &outputFile, Fam* family) {
     }
 }
 
+void printFamStats(ofstream &outputFile, int &currID) {
+    int* marr = FamArr[currID]->get_marr();
+    int* divorce = FamArr[currID]->get_div();
+    int remainSpace;
+    cout << "| "<< currID;
+    int lenID = getAmtIndi(currID);
+    for (remainSpace = lenID; remainSpace < colID; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " | " << FamArr[currID]->get_husb();
+    int id = FamArr[currID]->get_husb();
+    lenID = getAmtIndi(id);
+    for (remainSpace = lenID; remainSpace < colHusb; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " | " << FamArr[currID]->get_wife();
+    id = FamArr[currID]->get_wife();
+    for (remainSpace = lenID; remainSpace < colHusb; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " |";
+    // TODO: Print all children
+    vector<int> children = FamArr[currID]->get_chil();
+    string strChildren;
+    for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
+        cout << " " << *c;
+    }
+    stringstream buffer;
+    string stringDate;
+    if ((marr[0] == 0) && (marr[1] == 0) && (marr[2] == 0)) {
+        stringDate = "NULL";
+    } else {
+        buffer << marr[1] << "/" << marr[0] << "/" << marr[2];
+        buffer >> stringDate;
+        buffer.clear();
+    }
+    cout << " | " << stringDate;
+    for (remainSpace = stringDate.length(); remainSpace < colBirth; ++remainSpace) {
+        cout << " ";
+    }
+    if ((divorce[0] == 0) && (divorce[1] == 0) && (divorce[2] == 0)) {
+        stringDate = "NULL";
+    } else {
+        buffer << divorce[1] << "/" << divorce[0] << "/" << divorce[2];
+        buffer >> stringDate;
+        buffer.clear();
+    }
+    cout << " | " << stringDate;
+    for (remainSpace = stringDate.length(); remainSpace < colDeath; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " |\n";
+}
+
 /*
  * Function prints value for Indi and Fam onto output screen
  */
@@ -1101,9 +1155,6 @@ void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     for (int i = 0; i < lenColumn; ++i) {
         cout << " "; 
     }
-    colGender = 6;
-    colBirth = 10;
-    colDeath = 10;
     cout << " | ";
     cout << "GENDER";
     cout << " | ";
@@ -1144,13 +1195,12 @@ void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
 }
 
 void printFamHeader(ofstream &outputFile, int &maxFam) {
- int lenColumn = 0;
-    // Get amount of Indi ID
+    int lenColumn = 0;
+    // Find length of longest ID
     lenColumn = getAmtIndi(maxFam);
     if ((lenColumn % 2) == 1) {
         ++lenColumn;
     }
-    int longestNum = lenColumn + 2;
     colID = lenColumn;
     lenColumn = (lenColumn - 2) / 2;
     cout << "| ";
@@ -1161,31 +1211,43 @@ void printFamHeader(ofstream &outputFile, int &maxFam) {
     for (int i = 0; i < lenColumn; ++i) {
         cout << " "; 
     }
-    cout << " | ";
-    cout << "HUSB ID";
-    for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
-    }
-    cout << " | ";
-    cout << "WIFE ID ";
-    cout << " | ";
+    cout << " | HUSB ID  |";
+    cout << " WIFE ID  | ";
     // TODO: Reformat CHILDREN ID BAsed on # Children
+    stringstream buffer;
+
     cout << "CHILDREN ID";
-    cout << " | ";
-    cout << "MARR DATE";
-    cout << " | ";
-    cout << "DIV DATE";
-    cout << " |\n";
-    cout << "|";
+    cout << " | MARR DATE  |";
+    cout << "  DIV DATE  |\n";
     int i;
-    if (longestNum + 2 < 4) {
-        longestNum = 4;
-        colID = 4;
+    if (colID < 2) {
+        colID = 2;
     }
-    for (i = 0; i < longestNum; ++i) {
+    cout << "|_";
+    for (i = 0; i < colID; ++i) {
         cout << "_";
     }
-    cout << "|";
+    cout << "_|_";
+    for (i = 0; i < colHusb; ++i) {
+        cout << "_";
+    }
+    cout << "_|_";
+    for (i = 0; i < colWife; ++i) {
+        cout << "_";
+    }
+    cout << "_|_";
+    for (i = 0; i < colChil; ++i) {
+        cout << "_";
+    }
+    cout << "_|_";
+    for (i = 0; i < colMarr; ++i) {
+        cout << "_";
+    }
+    cout << "_|_";
+    for (i = 0; i < colDiv; ++i) {
+        cout << "_";
+    }
+    cout << "_|\n";
 }
 
 void closeTable(bool isIndi) {
@@ -1269,9 +1331,10 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
     printFamHeader(outputFile, maxFam);
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
-            //printFamStats(outputFile, currID);
+            printFamStats(outputFile, currID);
         }
     }
+    closeTable(false);
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
             int memberID = FamArr[currID]->get_husb(); 
@@ -1282,18 +1345,18 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
-				//Check if husband was alive at time of marriage
-				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-					cout << "Error US05: Husband died before being married.\n";
-				}
-				//Check if husband is male
-				if (IndiArr[memberID]->get_sex() != true) {
-					cout << "Error US21: Husband is not male.\n";
-				}
-				//Checks Husband isn't married to descendant
-				if (FamArr[currID]->get_wife() != -1) {
-				    checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
-				}
+                //Check if husband was alive at time of marriage
+                if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+                    cout << "Error US05: Husband died before being married.\n";
+                }
+                //Check if husband is male
+                if (IndiArr[memberID]->get_sex() != true) {
+                    cout << "Error US21: Husband is not male.\n";
+                }
+                //Checks Husband isn't married to descendant
+                if (FamArr[currID]->get_wife() != -1) {
+                    checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
+                }
             }
             memberID = FamArr[currID]->get_wife(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
@@ -1303,24 +1366,24 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
                     cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
-				//Check if wife was alive at time of marriage
-				if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-					cout << "Error US05: Wife died before being married.\n";
-				}
-				//Check if wife is female
-				if (IndiArr[memberID]->get_sex() != false) {
-					cout << "Error US21: Wife is not female.\n";
-				}
-				//Checks Wife isn't married to descendant
-				if (FamArr[currID]->get_husb() != -1) {
-					checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_husb()]);
-				}
+                //Check if wife was alive at time of marriage
+                if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
+                    cout << "Error US05: Wife died before being married.\n";
+                }
+                //Check if wife is female
+                if (IndiArr[memberID]->get_sex() != false) {
+                    cout << "Error US21: Wife is not female.\n";
+                }
+                //Checks Wife isn't married to descendant
+                if (FamArr[currID]->get_husb() != -1) {
+                    checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_husb()]);
+                }
             }
-			//Checks for marriage before divorce
-			if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
-				cout << "Error US04: Family divorced before being married.\n";
-			}
-			
+            //Checks for marriage before divorce
+            if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
+                cout << "Error US04: Family divorced before being married.\n";
+            }
+            
             // Check unique family by spouse names and marriage date
             checkUniqueFamS(currID, maxFam);
 
@@ -1391,14 +1454,14 @@ int main() {
             int currIndex = 0; // Index of current data point
             colID = 0;
             colName = 0;
-            colGender = 0;
-            colBirth = 0;
-            colDeath = 0;
-            colHusb = 0;
-            colWife = 0;
+            colGender = 6;
+            colBirth = 10;
+            colDeath = 10;
+            colHusb = 8;
+            colWife = 8;
             colChil = 0;
-            colMarr = 0;
-            colDiv = 0;
+            colMarr = 10;
+            colDiv = 10;
             vector<string> parsed;
 
             getline(gedFile, line);
