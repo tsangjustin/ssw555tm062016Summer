@@ -1156,6 +1156,33 @@ void printHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     cout << "|\n";
 }
 
+void closeTable(bool isIndi) {
+    int remainSpace;
+    if (isIndi) {
+        cout << "|_";
+        for (remainSpace = 0; remainSpace < colID; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colName; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colGender; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colBirth; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colDeath; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|\n";
+    }
+}
+
 void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     cout << "Printing...\n";
     printHeader(outputFile, longestName, maxIndi);
@@ -1165,6 +1192,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             printIndiStats(outputFile, currID);
         }
     }
+    closeTable(true);
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
             // Check Valid Birth
