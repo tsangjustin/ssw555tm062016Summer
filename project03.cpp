@@ -170,14 +170,20 @@ int createIndiFam(bool &isIndi, string &id) {
     if (!(checkValidID(isIndi, currID))) {
         return -1;
     }
+    int start = 0;
+    int end = id.size() - 1;
+    while (id[start] == id[end]) {
+        ++start;
+        --end;
+    }
     // This INDI ID is unique
     if (isIndi) {
         Indi* uniqueIndi = new Indi();
-        uniqueIndi->set_id(id);
+        uniqueIndi->set_id(id.substr(start, end - start + 1));
         IndiArr[currID] = uniqueIndi;
     } else {
         Fam* uniqueFam = new Fam();
-        uniqueFam->set_id(id);
+        uniqueFam->set_id(id.substr(start, end - start + 1));
         FamArr[currID] = uniqueFam;
     }
     return currID;
@@ -198,9 +204,21 @@ int addIndi(int &index, string &line, int &longestName) {
         string fullName = "";
         if (parsed.size() > 2) {
             for (int currName = 2; currName < parsed.size() - 1; ++currName) {
-                fullName += parsed[currName] + " ";
+                string subName = parsed[currName];
+                for (string::iterator c = subName.begin(); c != subName.end(); ++c) {
+                    if (((*c) != '/') && ((*c) != '?') && ((*c) != '*') && ((*c) != '!') && ((*c) != '+')
+                        && ((*c) != '$') && ((*c) != '#') && ((*c) != '^')) {
+                            fullName += *c;
+                    }
+                }
+                fullName += ' ';
             }
-            fullName += parsed[parsed.size() - 1];
+            for (string::iterator c = parsed[parsed.size() -1].begin(); c != parsed[parsed.size() -1].end(); ++c) {
+                if (((*c) != '/') && ((*c) != '?') && ((*c) != '*') && ((*c) != '!') && ((*c) != '+')
+                    && ((*c) != '$') && ((*c) != '#') && ((*c) != '^')) {
+                        fullName += *c;
+                }
+            }
             IndiArr[index]->set_name(fullName);
         }
     // Tag is Sex
@@ -808,7 +826,7 @@ bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
         for (vector< vector<int> >::iterator currFamChild = siblingFamSpouse.begin(); currFamChild != siblingFamSpouse.end(); ++currFamChild) {
             for (vector<int>::iterator currNieceNephew = (*currFamChild).begin(); currNieceNephew != (*currFamChild).end(); ++currNieceNephew) {
                 if ((*currNieceNephew) == spouseIndex) {
-                    cout << "Error US20: " << ((AuntUncle->get_sex()) ? "Uncle " : "Aunt ")  << AuntUncle->get_name() << "(" << AuntUncle->get_id() <<
+                    cout << "Error US20: " << ((AuntUncle->get_sex()) ? "Uncle " : "Aunt ")  << AuntUncle->get_name() << " (" << AuntUncle->get_id() <<
                             ") is married to " << ((IndiArr[*currNieceNephew]->get_sex()) ? "nephew " : "niece ") << IndiArr[*currNieceNephew]->get_name() <<
                             "(" << IndiArr[*currNieceNephew]->get_id() << ")\n";
                     err20 = true;
