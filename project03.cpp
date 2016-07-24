@@ -24,6 +24,7 @@ string FamTags[] = {"CHIL", "MARR", "DIV", "HUSB", "WIFE"};
 vector< Indi* > IndiArr;
 vector< Fam* > FamArr;
 int currDate[3];
+int colID, colName, colGender, colBirth, colDeath;
 
 /**
  * Splits the input string by spaces, removing '\r'
@@ -982,30 +983,63 @@ void isCorrespondingFamS(int &currID) {
     }
 }
 
+int getAmtIndi(int &num) {
+    int len = 0;
+    int amtIndi = num;
+    while (amtIndi > 0) {
+        amtIndi /= 10;
+        ++len;
+    }
+    return len;
+}
+
 /**
  * Function prints data of Indi onto console and outputFile
  */
 void printIndiStats(ofstream &outputFile, int &currID) {
     int* birth = IndiArr[currID]->get_birth();
-    cout << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
-    cout << "Name: " << IndiArr[currID]->get_name() << "\n";
-    cout << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
-    cout << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
+    int* death = IndiArr[currID]->get_death();
+    int remainSpace;
+    cout << "| "<< currID;
+    int lenID = getAmtIndi(currID);
+    for (remainSpace = lenID; remainSpace < colID; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " | " << IndiArr[currID]->get_name();
+    for (remainSpace = IndiArr[currID]->get_name().length(); remainSpace < colName; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " | " << ((IndiArr[currID]->get_sex()) ? " Male " : "Female");
+    stringstream buffer;
+    string stringDate;
+    if ((birth[0] == 0) && (birth[1] == 0) && (birth[2] == 0)) {
+        stringDate = "NULL";
+    } else {
+        buffer << birth[1] << "/" << birth[0] << "/" << birth[2];
+        buffer >> stringDate;
+        buffer.clear();
+    }
+    cout << " | " << stringDate;
+    for (remainSpace = stringDate.length(); remainSpace < colBirth; ++remainSpace) {
+        cout << " ";
+    }
+    if ((death[0] == 0) && (death[1] == 0) && (death[2] == 0)) {
+        stringDate = "NULL";
+    } else {
+        buffer << death[1] << "/" << death[0] << "/" << death[2];
+        buffer >> stringDate;
+        buffer.clear();
+    }
+    cout << " | " << stringDate;
+    for (remainSpace = stringDate.length(); remainSpace < colDeath; ++remainSpace) {
+        cout << " ";
+    }
+    cout << " |\n";
     //Add entries to output file
     outputFile << "\nINDI ID: " << IndiArr[currID]->get_id() << "\n";
     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
     outputFile << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
     outputFile << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
-    // Check Valid Birth
-    checkValidBirth(*IndiArr[currID]); 
-    // Check for Younger Than 150
-    olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
-    // Check Individual Not Born Out of Wedlock
-    checkWedlock(*IndiArr[currID]);
-    // Corresponding entries
-    isCorrespondingFamC(currID);
-    isCorrespondingFamS(currID);
-    checkBigamy(*IndiArr[currID]);
 }
 
 void printFamilyMembers(ofstream &outputFile, Fam* family) {
@@ -1049,25 +1083,15 @@ ID | HUSB ID | WIFE ID |
 
 
 */
-
-int getAmtIndi() {
-    int len = 0;
-    int amtIndi = IndiArr.size();
-    while (amtIndi > 0) {
-        amtIndi /= 10;
-        ++len;
-    }
-    return len;
-}
-
-void printHeader(int longestName) {
+void printHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     int lenColumn = 0;
     // Get amount of Indi ID
-    lenColumn = getAmtIndi();
+    lenColumn = getAmtIndi(maxIndi);
     if ((lenColumn % 2) == 1) {
         ++lenColumn;
     }
-    int longestNum = lenColumn;
+    int longestNum = lenColumn + 2;
+    colID = lenColumn;
     lenColumn = (lenColumn - 4) / 2;
     cout << "| ";
     for (int i = 0; i < lenColumn; ++i) {
@@ -1078,19 +1102,21 @@ void printHeader(int longestName) {
         cout << " "; 
     }
     cout << " | ";
-    lenColumn = longestName;
-    if ((lenColumn % 2) == 1) {
-        ++lenColumn;
+    if ((longestName % 2) == 1) {
+        ++longestName;
     }
-    ++longestName;
-    lenColumn = (lenColumn - 6) / 2;
+    colName = longestName;
+    lenColumn = (longestName - 4) / 2;
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << "NAME";
     for (int i = 0; i < lenColumn; ++i) {
         cout << " "; 
     }
+    colGender = 6;
+    colBirth = 10;
+    colDeath = 10;
     cout << " | ";
     cout << "GENDER";
     cout << " | ";
@@ -1102,15 +1128,17 @@ void printHeader(int longestName) {
     int i;
     if (longestNum + 2 < 4) {
         longestNum = 4;
+        colID = 4;
     }
-    for (i  = 0; i < longestNum; ++i) {
+    for (i = 0; i < longestNum; ++i) {
         cout << "_";
     }
     cout << "|";
-    if (longestName + 2 < 6) {
+    if (longestName < 6) {
         longestName = 6;
+        colName = 6;
     }
-    for (i  = 0; i < longestName; ++i) {
+    for (i  = 0; i < longestName + 2; ++i) {
         cout << "_";
     }
     cout << "|";
@@ -1125,16 +1153,30 @@ void printHeader(int longestName) {
     for (i  = 0; i < 12; ++i) {
         cout << "_";
     }
-    cout << "|";
+    cout << "|\n";
 }
 
 void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     cout << "Printing...\n";
-    printHeader(longestName);
+    printHeader(outputFile, longestName, maxIndi);
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
             printIndiStats(outputFile, currID);
+        }
+    }
+    for (currID = 0; currID <= maxIndi; ++currID) {
+        if (IndiArr[currID] != NULL) {
+            // Check Valid Birth
+            checkValidBirth(*IndiArr[currID]); 
+            // Check for Younger Than 150
+            olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death());
+            // Check Individual Not Born Out of Wedlock
+            checkWedlock(*IndiArr[currID]);
+            // Corresponding entries
+            isCorrespondingFamC(currID);
+            isCorrespondingFamS(currID);
+            checkBigamy(*IndiArr[currID]);
         }
     }
     for (currID = 0; currID <= maxFam; ++currID) {
@@ -1257,6 +1299,11 @@ int main() {
             int longestName = 0;
             bool isIndi = true;
             int currIndex = 0; // Index of current data point
+            colID = 0;
+            colName = 0;
+            colGender = 0;
+            colBirth = 0;
+            colDeath = 0;
             vector<string> parsed;
 
             getline(gedFile, line);
@@ -1300,7 +1347,6 @@ int main() {
             }
             printScreen(outputFile, maxIndi, maxFam, longestName);
             outputFile.close();
-            cout << longestName << endl;
         } else {
             cout << "Unable to open output file.\n";
         }
