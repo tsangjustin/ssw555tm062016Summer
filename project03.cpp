@@ -219,6 +219,9 @@ int addIndi(int &index, string &line, int &longestName) {
                         fullName += *c;
                 }
             }
+            if (fullName.length() > longestName) {
+                longestName = fullName.length();
+            }
             IndiArr[index]->set_name(fullName);
         }
     // Tag is Sex
@@ -785,7 +788,7 @@ void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
 			
 			Indi* child = IndiArr[*c];
 			if (child->get_id() == descendant->get_id()) {
-				cout << "Error US17: parent is married to descendant. \n";
+				cout << "Error US17: Parent is married to descendant. \n";
 				break;
 			} else {
 				checkParentDescendantMarriage(child, descendant);
@@ -1057,13 +1060,14 @@ int getAmtIndi() {
     return len;
 }
 
-void printHeader() {
+void printHeader(int longestName) {
     int lenColumn = 0;
     // Get amount of Indi ID
     lenColumn = getAmtIndi();
     if ((lenColumn % 2) == 1) {
         ++lenColumn;
     }
+    int longestNum = lenColumn;
     lenColumn = (lenColumn - 4) / 2;
     cout << "| ";
     for (int i = 0; i < lenColumn; ++i) {
@@ -1073,12 +1077,60 @@ void printHeader() {
     for (int i = 0; i < lenColumn; ++i) {
         cout << " "; 
     }
-    cout << " | NAME";
+    cout << " | ";
+    lenColumn = longestName;
+    if ((lenColumn % 2) == 1) {
+        ++lenColumn;
+    }
+    ++longestName;
+    lenColumn = (lenColumn - 6) / 2;
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << "NAME";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << " | ";
+    cout << "GENDER";
+    cout << " | ";
+    cout << "BIRTH DATE";
+    cout << " | ";
+    cout << "DEATH DATE";
+    cout << " |\n";
+    cout << "|";
+    int i;
+    if (longestNum + 2 < 4) {
+        longestNum = 4;
+    }
+    for (i  = 0; i < longestNum; ++i) {
+        cout << "_";
+    }
+    cout << "|";
+    if (longestName + 2 < 6) {
+        longestName = 6;
+    }
+    for (i  = 0; i < longestName; ++i) {
+        cout << "_";
+    }
+    cout << "|";
+    for (i  = 0; i < 8; ++i) {
+        cout << "_";
+    }
+    cout << "|";
+    for (i  = 0; i < 12; ++i) {
+        cout << "_";
+    }
+    cout << "|";
+    for (i  = 0; i < 12; ++i) {
+        cout << "_";
+    }
+    cout << "|";
 }
 
-void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam) {
+void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     cout << "Printing...\n";
-    printHeader();
+    printHeader(longestName);
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
@@ -1246,8 +1298,9 @@ int main() {
                 }
                 getline(gedFile, line);
             }
-            printScreen(outputFile, maxIndi, maxFam);
+            printScreen(outputFile, maxIndi, maxFam, longestName);
             outputFile.close();
+            cout << longestName << endl;
         } else {
             cout << "Unable to open output file.\n";
         }
