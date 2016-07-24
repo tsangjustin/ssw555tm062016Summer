@@ -761,17 +761,17 @@ void checkWedlock(Indi &indi) {
         Fam *family = FamArr[*f];
 		if (family == NULL) {
 			if (family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
-				if(dateCompare(birth, family->get_marr()) == 1) {
-					cout << "Error US08: Child born out of wedlock. \n";
+				if (dateCompare(birth, family->get_marr()) == 1) {
+					cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
 				} else {
 					if (family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
 						if (dateCompare(birth, family->get_div()) == -1) {
-							cout << "Error US08: Child born out of wedlock. \n";
+							cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
 						}
 					}
 				}
 			} else {
-				cout << "Error US08: Child born out of wedlock. \n";
+				cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
 			}
 		}
 	}
@@ -960,7 +960,7 @@ void isCorrespondingFamC(int &currID) {
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
         if ((FamArr[*it] == NULL) || (!(FamArr[*it]->checkChild(currID)))) {
             cout << "Error US26: " << IndiArr[currID]->get_name() << "(" << IndiArr[currID]->get_id() <<
-                    ") is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n";
         }
     }
 }
@@ -973,7 +973,7 @@ void isCorrespondingFamS(int &currID) {
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
         if ((FamArr[*it] == NULL) || (!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
             cout << "Error US26: " << IndiArr[currID]->get_name() << "(" << IndiArr[currID]->get_id() <<
-                    ") is not corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n";
         }
     }
 }
@@ -1392,9 +1392,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
-                    cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
+                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
-                    cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
                 //Check if husband was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
@@ -1413,9 +1413,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
-                    cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
+                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
-                    cout << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
                 }
                 //Check if wife was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
@@ -1443,9 +1443,9 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
                 // Check if corresponding entry for child in Indi entry
                 if (IndiArr[*it] == NULL) {
-                    cout << "Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
+                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
                 } else if (!(IndiArr[*it]->checkFamC(currID))) {
-                    cout << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() << "\n";
                 }
                 for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
                     if ((IndiArr[*it] != NULL) && (IndiArr[*itCmp] != NULL)) {
@@ -1463,7 +1463,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 }
             }
             if (multBirthCount > 5) {
-                cout << "Error US14: Too Many Children Born at Once. \n";
+                cout << "Error US14: Family " << FamArr[currID]->get_id() << " has too many children born at once.\n";
             }
             parentsNotTooOld(*FamArr[currID]);
             checkSiblingSpacing(*FamArr[currID]);
