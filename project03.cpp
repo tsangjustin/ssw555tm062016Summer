@@ -25,6 +25,7 @@ vector< Indi* > IndiArr;
 vector< Fam* > FamArr;
 int currDate[3];
 int colID, colName, colGender, colBirth, colDeath;
+int colHusb, colWife, colChil, colMarr, colDiv;
 
 /**
  * Splits the input string by spaces, removing '\r'
@@ -1069,21 +1070,7 @@ void printFamilyMembers(ofstream &outputFile, Fam* family) {
  * Function prints value for Indi and Fam onto output screen
  */
 // TODO: Tabulate the INDI and FAM info print to screen
-/*
--For name get longest name of all inputted
--NULL if does not xist
-
-|         ID       |   NAME    | GENDER | BIRTH DATE | DEATH DATE |
-|__________________|___________|________|____________|____________|
-|                  |           |        |            |            |
-
-
-
-ID | HUSB ID | WIFE ID | 
-
-
-*/
-void printHeader(ofstream &outputFile, int longestName, int &maxIndi) {
+void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     int lenColumn = 0;
     // Get amount of Indi ID
     lenColumn = getAmtIndi(maxIndi);
@@ -1092,7 +1079,7 @@ void printHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     }
     int longestNum = lenColumn + 2;
     colID = lenColumn;
-    lenColumn = (lenColumn - 4) / 2;
+    lenColumn = (lenColumn - 2) / 2;
     cout << "| ";
     for (int i = 0; i < lenColumn; ++i) {
         cout << " "; 
@@ -1156,6 +1143,51 @@ void printHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     cout << "|\n";
 }
 
+void printFamHeader(ofstream &outputFile, int &maxFam) {
+ int lenColumn = 0;
+    // Get amount of Indi ID
+    lenColumn = getAmtIndi(maxFam);
+    if ((lenColumn % 2) == 1) {
+        ++lenColumn;
+    }
+    int longestNum = lenColumn + 2;
+    colID = lenColumn;
+    lenColumn = (lenColumn - 2) / 2;
+    cout << "| ";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << "ID";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << " | ";
+    cout << "HUSB ID";
+    for (int i = 0; i < lenColumn; ++i) {
+        cout << " "; 
+    }
+    cout << " | ";
+    cout << "WIFE ID ";
+    cout << " | ";
+    // TODO: Reformat CHILDREN ID BAsed on # Children
+    cout << "CHILDREN ID";
+    cout << " | ";
+    cout << "MARR DATE";
+    cout << " | ";
+    cout << "DIV DATE";
+    cout << " |\n";
+    cout << "|";
+    int i;
+    if (longestNum + 2 < 4) {
+        longestNum = 4;
+        colID = 4;
+    }
+    for (i = 0; i < longestNum; ++i) {
+        cout << "_";
+    }
+    cout << "|";
+}
+
 void closeTable(bool isIndi) {
     int remainSpace;
     if (isIndi) {
@@ -1180,12 +1212,38 @@ void closeTable(bool isIndi) {
             cout << "_";
         }
         cout << "_|\n";
+    } else {
+        cout << "|_";
+        for (remainSpace = 0; remainSpace < colID; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colHusb; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colWife; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colChil; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colMarr; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (remainSpace = 0; remainSpace < colDiv; ++remainSpace) {
+            cout << "_";
+        }
+        cout << "_|\n";
     }
 }
 
 void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     cout << "Printing...\n";
-    printHeader(outputFile, longestName, maxIndi);
+    printIndiHeader(outputFile, longestName, maxIndi);
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
@@ -1207,11 +1265,15 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             checkBigamy(*IndiArr[currID]);
         }
     }
+    cout << "\n";
+    printFamHeader(outputFile, maxFam);
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
-            cout << "\nFAM ID: " << FamArr[currID]->get_id() << "\n";
-            outputFile << "FAM ID: " << FamArr[currID]->get_id() << "\n";
-            printFamilyMembers(outputFile, FamArr[currID]);
+            //printFamStats(outputFile, currID);
+        }
+    }
+    for (currID = 0; currID <= maxFam; ++currID) {
+        if (FamArr[currID] != NULL) {
             int memberID = FamArr[currID]->get_husb(); 
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 // Check if spouse has corresponding Indi entry
@@ -1332,6 +1394,11 @@ int main() {
             colGender = 0;
             colBirth = 0;
             colDeath = 0;
+            colHusb = 0;
+            colWife = 0;
+            colChil = 0;
+            colMarr = 0;
+            colDiv = 0;
             vector<string> parsed;
 
             getline(gedFile, line);
