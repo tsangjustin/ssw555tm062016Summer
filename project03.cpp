@@ -989,8 +989,23 @@ int getAmtIndi(int &num) {
 }
 
 /* Function lists all living married couples */
-void listLivingMarried() {
-    
+void listLivingMarried(int &maxFam) {
+    for (int f = 0; f <= maxFam; ++f) {
+        if (FamArr[f] != NULL) {
+            // If no divorce
+            if (FamArr[f]->get_div()[2] == 0) {
+                int husb = FamArr[f]->get_husb();
+                int wife = FamArr[f]->get_wife();
+                if ((husb > -1) && (wife > -1)) {
+                    if ((IndiArr[husb] != NULL) && (IndiArr[wife] != NULL)) {
+                        if ((IndiArr[husb]->get_death()[2] == 0) && (IndiArr[wife]->get_death()[2] == 0)) {
+                            cout << "US30: " << IndiArr[husb]->get_name() << " " << IndiArr[wife]->get_name() << "\n";
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* Function lists all living spouses and descendants of people who died in last 30 days */
@@ -1566,6 +1581,7 @@ int main() {
             }
             printScreen(outputFile, maxIndi, maxFam, longestName);
             outputFile.close();
+            listLivingMarried(maxFam);
         } else {
             cout << "Unable to open output file.\n";
         }
