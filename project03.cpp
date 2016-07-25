@@ -1612,7 +1612,13 @@ int main() {
                 cout << "6. Exit program\n";
                 cout << "Input: ";
                 cin >> option;
-
+                while (cin.fail()) {
+                    cout << "Failed to recognize input. Please try again...\n";
+                    cout << "Input: ";
+                    cin.clear();
+                    cin.ignore(256, '\n');
+                    cin >> option;
+                }
                 switch (option) {
                     case (1):
                         printAllIndi(outputFile, maxIndi, longestName);
@@ -1626,8 +1632,11 @@ int main() {
                         break;
                     case (5):
                         break;
+                    default:
+                        break;
                 }
             }
+            cout << "\n";
             outputFile.close();
         } else {
             cout << "Unable to open output file.\n";
