@@ -1376,8 +1376,29 @@ void closeTable(bool isIndi) {
     }
 }
 
+void printAllIndi(ofstream &outputFile, int &maxIndi, int &longestName) {
+    printIndiHeader(outputFile, longestName, maxIndi);
+    int currID;
+    for (currID = 0; currID <= maxIndi; ++currID) {
+        if (IndiArr[currID] != NULL) {
+            printIndiStats(outputFile, currID);
+        }
+    }
+    closeTable(true);
+}
+
+void printAllFam(ofstream &outputFile, int &maxFam) {
+    printFamHeader(outputFile, maxFam);
+    int currID;
+    for (currID = 0; currID <= maxFam; ++currID) {
+        if (FamArr[currID] != NULL) {
+            printFamStats(outputFile, currID);
+        }
+    }
+    closeTable(false);
+}
+
 void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
-    cout << "Printing...\n";
     printIndiHeader(outputFile, longestName, maxIndi);
     int currID;
     for (currID = 0; currID <= maxIndi; ++currID) {
@@ -1579,9 +1600,35 @@ int main() {
                 }
                 getline(gedFile, line);
             }
-            printScreen(outputFile, maxIndi, maxFam, longestName);
+            //printScreen(outputFile, maxIndi, maxFam, longestName);
+            int option = 0;
+            while (option != 6) {
+                cout << "\nWhat would you like to do?\n";
+                cout << "1. Show all INDI\n";
+                cout << "2. Show all FAM\n";
+                cout << "3. List all errors\n";
+                cout << "4. List living spouses\n";
+                cout << "5. List recent survivors\n";
+                cout << "6. Exit program\n";
+                cout << "Input: ";
+                cin >> option;
+
+                switch (option) {
+                    case (1):
+                        printAllIndi(outputFile, maxIndi, longestName);
+                        break;
+                    case (2):
+                        printAllFam(outputFile, maxFam);
+                        break;
+                    case (3):
+                        break;
+                    case (4):
+                        break;
+                    case (5):
+                        break;
+                }
+            }
             outputFile.close();
-            listLivingMarried(maxFam);
         } else {
             cout << "Unable to open output file.\n";
         }
