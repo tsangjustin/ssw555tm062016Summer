@@ -988,6 +988,16 @@ int getAmtIndi(int &num) {
     return len;
 }
 
+/* Function lists all living married couples */
+void listLivingMarried() {
+    
+}
+
+/* Function lists all living spouses and descendants of people who died in last 30 days */
+void listRecentSurvivors() {
+
+}
+
 /**
  * Function prints data of Indi onto console and outputFile
  */
