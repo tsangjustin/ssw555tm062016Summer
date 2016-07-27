@@ -760,11 +760,11 @@ void checkWedlock(Indi &indi) {
 	for (std::vector<int>::iterator f = famc.begin(); f != famc.end(); ++f) {
         Fam *family = FamArr[*f];
 		if (family == NULL) {
-			if (family->get_marr()[0] != 0 && family->get_marr()[1] != 0 && family->get_marr()[2] != 0) {
+			if (family->get_marr()[2] != 0) { //Only check for valid year per US41
 				if (dateCompare(birth, family->get_marr()) == 1) {
 					cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
 				} else {
-					if (family->get_div()[0] != 0 && family->get_div()[1] != 0 && family->get_div()[2] != 0) {
+					if (family->get_div()[2] != 0) { // Only check for valid year per US41
 						if (dateCompare(birth, family->get_div()) == -1) {
 							cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
 						}
@@ -1011,6 +1011,50 @@ void listLivingMarried(int &maxFam) {
 /* Function lists all living spouses and descendants of people who died in last 30 days */
 void listRecentSurvivors() {
 
+}
+
+/* Function lists all deceased individuals */
+void listDeceased(int &maxIndi) {
+	for (int i = 0; i <= maxIndi; ++i) {
+		if(IndiArr[i] != NULL) {
+			//If individual is dead
+			if(IndiArr[i]->get_death()[2] > 0) {
+				cout << "US29: " << IndiArr[i]->get_name() << "\n";
+			}
+		}
+	}
+}
+
+void listOrphans(int &maxFam) {
+	for(int f=0; f <= maxFam; ++f) {
+		if(FamArr[f] != NULL) {
+			int husb = FamArr[f]->get_husb();
+            int wife = FamArr[f]->get_wife();
+			if ((husb > -1) && (wife > -1)) {
+				if ((IndiArr[husb] != NULL) && (IndiArr[wife] != NULL)) {
+					if ((IndiArr[husb]->get_death()[2] > 0) && (IndiArr[wife]->get_death()[2] > 0)) {
+						vector <int> chil = FamArr[f]->get_chil();
+						for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
+							Indi * child = IndiArr[*c];
+							if((currDate[2] - child->get_birth()[2]) < 18) {
+								cout << "US33: " << child->get_name() << "\n";
+							}
+							else if((currDate[2] - child->get_birth()[2]) == 18) {
+								if((currDate[1] - child->get_birth()[1]) < 0) {
+									cout << "US33: " << child->get_name() << "\n";
+								}
+								else if((currDate[1] - child->get_birth()[1]) == 0) {
+									if ((currDate[0] - child->get_birth()[0]) < 0) {
+										cout << "US33: " << child->get_name() << "\n";
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -1609,7 +1653,9 @@ int main() {
                 cout << "3. List all errors\n";
                 cout << "4. List living spouses\n";
                 cout << "5. List recent survivors\n";
-                cout << "6. Exit program\n";
+				cout << "6. List deceased\n";
+				cout << "7. List orphans\n";
+                cout << "8. Exit program\n";
                 cout << "Input: ";
                 cin >> option;
                 while (cin.fail()) {
@@ -1632,6 +1678,12 @@ int main() {
                         break;
                     case (5):
                         break;
+					case (6):
+						listDeceased(maxIndi);
+						break;
+					case (7):
+						listOrphans(maxFam);
+						break;
                     default:
                         break;
                 }
