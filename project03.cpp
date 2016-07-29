@@ -12,7 +12,47 @@
 #include <sstream>
 #include <ctime>
 
+#ifdef unix
+#include <dirent.h>
+#elif _WIN32
+#include <Windows.h>
+#endif
+
 using namespace std;
+
+#if __unix__
+vector<string> getFiles() {
+    DIR *dpdf;
+    struct dirent *epdf;
+    vector<string> names;
+
+    dpdf = opendir("./GED_Files/*.ged");
+    if (dpdf != NULL) {
+        while (epdf = readdir(dpdf)) {
+            // printf("Filename: %s",epdf->d_name);
+            std::cout << epdf->d_name << endl;
+        }
+    }
+    return names;
+}
+#elif _WIN32
+vector<string> getFiles() {
+    vector<string> names;
+    string searchPath = ".\\GED_Files\\*.ged";
+    WIN32_FIND_DATA fd;
+    HANDLE hFind = ::FindFirstFile(searchPath.c_str(), &fd);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                names.push_back(fd.cFileName);
+            }
+        } while(::FindNextFile(hFind, &fd));
+        ::FindClose(hFind);
+    }
+    return names;
+}
+#endif
+vector<string> files = getFiles();
 
 // Array of valid tags
 string levelZeroTags[] = {"INDI", "FAM"};
@@ -1010,6 +1050,7 @@ void listLivingMarried(int &maxFam) {
 
 /* Function lists all living spouses and descendants of people who died in last 30 days */
 void listRecentSurvivors() {
+    // Get 1 month back and run dateCompare() to check that death date is later than 1 month before date
 
 }
 
@@ -1564,6 +1605,7 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
 }
 
 int main() {
+    // vector<string> files = get_all_files_names_within_folders("./GED");
     string fileNameInput;
     // Take input of ged file to take in as input
     cout << "Enter ged file name: ";
@@ -1646,7 +1688,7 @@ int main() {
             }
             //printScreen(outputFile, maxIndi, maxFam, longestName);
             int option = 0;
-            while (option != 6) {
+            while (option != 8) {
                 cout << "\nWhat would you like to do?\n";
                 cout << "1. Show all INDI\n";
                 cout << "2. Show all FAM\n";
@@ -1675,6 +1717,7 @@ int main() {
                     case (3):
                         break;
                     case (4):
+                        listLivingMarried(maxFam);
                         break;
                     case (5):
                         break;
