@@ -30,7 +30,7 @@ vector<string> getFiles() {
     if (dpdf != NULL) {
         while (epdf = readdir(dpdf)) {
             // printf("Filename: %s",epdf->d_name);
-            std::cout << epdf->d_name << endl;
+            std::cout << epdf->d_name << "\n";
         }
     }
     return names;
@@ -1048,17 +1048,91 @@ void listLivingMarried(int &maxFam) {
     }
 }
 
-/* Function lists all living spouses and descendants of people who died in last 30 days */
-void listRecentSurvivors() {
-    // Get 1 month back and run dateCompare() to check that death date is later than 1 month before date
+void printDescendants(Fam* f) {
+    vector<int> chil = f->get_chil();
+    for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
+        cout << IndiArr[*c]->get_name() << "\n";
+        vector<int> descFam = IndiArr[*c]->get_fams();
+        for (vector<int>::iterator dc = descFam.begin(); dc != descFam.end(); ++dc) {
+            printDescendants(FamArr[*dc]);
+        }
+    }
+}
 
+/* Function lists all living spouses and descendants of people who died in last 30 days */
+void listRecentSurvivors(int &maxIndi) {
+    // Get 1 month back and run dateCompare() to check that death date is later than 1 month before date
+    int MonthBack[3];
+    if (((currDate[1] >= 1) && (currDate[1] <= 12)) &&
+       ((currDate[0] >= 1) && (currDate[0] <= 31)) &&
+       (currDate[2] >= 1)) {
+        MonthBack[0] = currDate[0];
+        MonthBack[1] = currDate[1];
+        MonthBack[2] = currDate[2];
+        
+        MonthBack[0] -= 30;        
+        if (MonthBack[0] <= 0) {
+            // Check if January
+            if (MonthBack[1] == 1) {
+                MonthBack[1] = 12;
+                MonthBack[2] -= 1;
+            } else {
+                MonthBack[1] -= 1;
+            }
+        }
+        switch (MonthBack[1]) {
+            // February
+            case (2):
+                if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
+                    MonthBack[0] = 29 - MonthBack[0];
+                } else {
+                    MonthBack[0] = 28 - MonthBack[0];
+                }
+                break;
+            // January, March, May, July, August, October, December
+            case (1):
+            case (3):
+            case (5):
+            case (7):
+            case (8):
+            case (10):
+            case (12):
+                MonthBack[0] = 31 - MonthBack[0];
+                break;
+            // April, June, September, November
+            case (4):
+            case (6):
+            case (9):
+            case (11):
+                MonthBack[0] = 30 - MonthBack[0];
+                break;
+        }
+        for (int i = 0; i <= maxIndi; ++i) {
+            if (IndiArr[i] != NULL) {
+                if (IndiArr[i]->get_death()[2] > 0) {
+                    if (dateCompare(MonthBack, IndiArr[i]->get_death()) > 0) {
+                        vector<int> family = IndiArr[i]->get_fams();
+                        for (vector<int>::iterator fs = family.begin(); fs != family.end(); ++fs) {
+                            if (IndiArr[i]->get_sex()) {
+                                cout << "Wife: " << IndiArr[FamArr[*fs]->get_wife()]->get_name() << "\n";
+                            } else {
+                                cout << "Husband: " << IndiArr[FamArr[*fs]->get_husb()]->get_name() << "\n";
+                            }
+                            cout << "Descendants:\n";
+                            printDescendants(FamArr[*fs]);
+                        }
+                    }
+                }
+            }
+        }
+    }   
 }
 
 /* Function lists all deceased individuals */
 void listDeceased(int &maxIndi) {
-	for (int i = 0; i <= maxIndi; ++i) {
-		if(IndiArr[i] != NULL) {
-			//If individual is dead
+    for (int i = 0; i <= maxIndi; ++i) {
+        if(IndiArr[i] != NULL) {
+            //If individual is dead
 			if(IndiArr[i]->get_death()[2] > 0) {
 				cout << "US29: " << IndiArr[i]->get_name() << "\n";
 			}
@@ -1720,6 +1794,7 @@ int main() {
                         listLivingMarried(maxFam);
                         break;
                     case (5):
+                        listRecentSurvivors(maxIndi);
                         break;
 					case (6):
 						listDeceased(maxIndi);
