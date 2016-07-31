@@ -11,6 +11,7 @@
 #include <vector>
 #include <sstream>
 #include <ctime>
+#include <algorithm>
 
 #ifdef unix
 #include <dirent.h>
@@ -1241,6 +1242,22 @@ int getLongestFamily(int &maxFam) {
     return longestFam;
 }
 
+bool sortByAge(const int & indi1, const int &indi2) {
+    if (indi1 == -1)
+        return false;
+    else if (indi2 == -1)
+        return false;
+    int * birth1 = IndiArr[indi1]->get_birth();
+    int * birth2 = IndiArr[indi2]->get_birth();
+    bool val = dateCompare(birth1, birth2);
+    if (val == -1) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 void printFamStats(ofstream &outputFile, int &currID) {
     int* marr = FamArr[currID]->get_marr();
     int* divorce = FamArr[currID]->get_div();
@@ -1282,6 +1299,7 @@ void printFamStats(ofstream &outputFile, int &currID) {
     if (children.size() <= 0) {
         strChildren = " NULL";
     } else {
+        std::sort(children.begin(), children.end(), sortByAge);
         for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
             string temp;
             buffer << *c;
