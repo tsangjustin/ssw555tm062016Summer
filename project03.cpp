@@ -1254,17 +1254,23 @@ void listRecentSurvivors(int &maxIndi) {
 
 /* Function lists all deceased individuals */
 void listDeceased(int &maxIndi) {
+	cout << "| DECEASED ID |\n";
+    cout << "|_____________|\n";
     for (int i = 0; i <= maxIndi; ++i) {
         if (IndiArr[i] != NULL) {
             //If individual is dead
 			if(IndiArr[i]->get_death()[2] > 0) {
-				cout << "US29: " << IndiArr[i]->get_name() << "\n";
+				cout << "|      " << IndiArr[i]->get_id() << "     |\n";
 			}
+			
 		}
 	}
+	cout << "|_____________|\n";
 }
 
 void listOrphans(int &maxFam) {
+	cout << "| ORPHAN ID |\n";
+    cout << "|___________|\n";
 	for(int f=0; f <= maxFam; ++f) {
 		if(FamArr[f] != NULL) {
 			int husb = FamArr[f]->get_husb();
@@ -1276,15 +1282,15 @@ void listOrphans(int &maxFam) {
 						for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
 							Indi * child = IndiArr[*c];
 							if((currDate[2] - child->get_birth()[2]) < 18) {
-								cout << "US33: " << child->get_name() << "\n";
+								cout << "|    " << child->get_id() <<  "    |\n";
 							}
 							else if((currDate[2] - child->get_birth()[2]) == 18) {
 								if((currDate[1] - child->get_birth()[1]) < 0) {
-									cout << "US33: " << child->get_name() << "\n";
+									cout << "|    " << child->get_id() <<  "    |\n";
 								}
 								else if((currDate[1] - child->get_birth()[1]) == 0) {
 									if ((currDate[0] - child->get_birth()[0]) < 0) {
-										cout << "US33: " << child->get_name() << "\n";
+										cout << "|    " << child->get_id() <<  "    |\n";
 									}
 								}
 							}
@@ -1294,6 +1300,7 @@ void listOrphans(int &maxFam) {
 			}
 		}
 	}
+	cout << "|___________|\n";
 }
 
 /**
