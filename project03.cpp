@@ -1060,15 +1060,21 @@ void listLivingMarried(int &maxFam) {
     cout << "|_________|_________|\n";
 }
 
-string printDescendants(Fam* f) {
-    vector<int> chil = f->get_chil();
-    for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
-        cout << IndiArr[*c]->get_name() << "\n";
-        vector<int> descFam = IndiArr[*c]->get_fams();
+string printDescendants(int &indi) {
+    string id = "";
+    stringstream buffer;
+    vector<int> fams = IndiArr[indi]->get_fams();
+    for (vector<int>::iterator fs = fams.begin(); fs != fams.end(); ++fs) {
+        vector<int> descFam = FamArr[*fs]->get_chil();
         for (vector<int>::iterator dc = descFam.begin(); dc != descFam.end(); ++dc) {
-            printDescendants(FamArr[*dc]);
+            string temp;
+            buffer << *dc;
+            buffer >> temp;
+            id += " " + temp;
+            id += printDescendants(*dc);
         }
     }
+    return id;
 }
 
 int getLongestSpouse(int &maxIndi) {
@@ -1137,7 +1143,7 @@ void listRecentSurvivors(int &maxIndi) {
         MonthBack[1] = currDate[1];
         MonthBack[2] = currDate[2];
         
-        MonthBack[0] -= 30;        
+        MonthBack[0] -= 30;
         if (MonthBack[0] <= 0) {
             // Check if January
             if (MonthBack[1] == 1) {
@@ -1147,32 +1153,34 @@ void listRecentSurvivors(int &maxIndi) {
                 MonthBack[1] -= 1;
             }
         }
-        switch (MonthBack[1]) {
-            // February
-            case (2):
-                if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
-                    MonthBack[0] = 29 - MonthBack[0];
-                } else {
-                    MonthBack[0] = 28 - MonthBack[0];
-                }
-                break;
-            // January, March, May, July, August, October, December
-            case (1):
-            case (3):
-            case (5):
-            case (7):
-            case (8):
-            case (10):
-            case (12):
-                MonthBack[0] = 31 - MonthBack[0];
-                break;
-            // April, June, September, November
-            case (4):
-            case (6):
-            case (9):
-            case (11):
-                MonthBack[0] = 30 - MonthBack[0];
-                break;
+        if (MonthBack[0] <= 0) {
+            switch (MonthBack[1]) {
+                // February
+                case (2):
+                    if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
+                        MonthBack[0] = 29 - MonthBack[0];
+                    } else {
+                        MonthBack[0] = 28 - MonthBack[0];
+                    }
+                    break;
+                // January, March, May, July, August, October, December
+                case (1):
+                case (3):
+                case (5):
+                case (7):
+                case (8):
+                case (10):
+                case (12):
+                    MonthBack[0] = 31 - MonthBack[0];
+                    break;
+                // April, June, September, November
+                case (4):
+                case (6):
+                case (9):
+                case (11):
+                    MonthBack[0] = 30 - MonthBack[0];
+                    break;
+            }
         }
         int longestSpouse = getLongestSpouse(maxIndi);
         if (longestSpouse % 2 == 1) {
@@ -1227,15 +1235,30 @@ void listRecentSurvivors(int &maxIndi) {
                         }
                         cout << " |";
                         vector<int> family = IndiArr[i]->get_fams();
+                        string idOutput = "";
+                        stringstream buffer;
                         for (vector<int>::iterator fs = family.begin(); fs != family.end(); ++fs) {
+                            string temp;
                             if (IndiArr[i]->get_sex()) {
-                                cout << " " << FamArr[*fs]->get_wife();
+                                buffer << FamArr[*fs]->get_wife();
                             } else {
-                                cout << " " << FamArr[*fs]->get_husb();
+                                buffer << FamArr[*fs]->get_husb();
                             }
-                            cout << "Descendants:\n";
-                            printDescendants(FamArr[*fs]);
+                            buffer >> temp;
+                            buffer.clear();
+                            idOutput += " " + temp;
                         }
+                        cout << idOutput;
+                        for (int rs = idOutput.length() - 1; rs < longestSpouse; ++rs) {
+                            cout << " ";
+                        }
+                        cout << " |";
+                        idOutput = printDescendants(i);
+                        cout << idOutput;
+                        for (int rs = idOutput.length() - 1; rs < longestChildren; ++rs) {
+                            cout << " ";
+                        }
+                        cout << " |\n";
                     }
                 }
             }
