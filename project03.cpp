@@ -1688,15 +1688,8 @@ void printAllFam(ofstream &outputFile, int &maxFam) {
     closeTable(false);
 }
 
-void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
-    printIndiHeader(outputFile, longestName, maxIndi);
+void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     int currID;
-    for (currID = 0; currID <= maxIndi; ++currID) {
-        if (IndiArr[currID] != NULL) {
-            printIndiStats(outputFile, currID);
-        }
-    }
-    closeTable(true);
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
             // Check Valid Birth
@@ -1715,13 +1708,6 @@ void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
         }
     }
     cout << "\n";
-    printFamHeader(outputFile, maxFam);
-    for (currID = 0; currID <= maxFam; ++currID) {
-        if (FamArr[currID] != NULL) {
-            printFamStats(outputFile, currID);
-        }
-    }
-    closeTable(false);
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
             int memberID = FamArr[currID]->get_husb(); 
@@ -1920,6 +1906,7 @@ int main() {
                         printAllFam(outputFile, maxFam);
                         break;
                     case (3):
+                        printErrors(outputFile, maxIndi, maxFam, longestName);
                         break;
                     case (4):
                         listLivingMarried(maxFam);
