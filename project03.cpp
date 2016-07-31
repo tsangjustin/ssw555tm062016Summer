@@ -827,7 +827,8 @@ void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
 			
 			Indi* child = IndiArr[*c];
 			if (child->get_id() == descendant->get_id()) {
-				cout << "Error US17: Parent is married to descendant. \n";
+				cout << "Error US17: " << parent->get_name() << " (" << parent->get_id() << ") is married to descendant " <<
+                        child->get_name() << " (" << child->get_id() << ").\n";
 				break;
 			} else {
 				checkParentDescendantMarriage(child, descendant);
@@ -1690,6 +1691,7 @@ void printAllFam(ofstream &outputFile, int &maxFam) {
 
 void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
     int currID;
+    cout << "INDI Errors:\n";
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
             // Check Valid Birth
@@ -1708,6 +1710,7 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
         }
     }
     cout << "\n";
+    cout << "FAM Errors:\n";
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
             int memberID = FamArr[currID]->get_husb(); 
@@ -1720,11 +1723,11 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 }
                 //Check if husband was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-                    cout << "Error US05: Husband died before being married.\n";
+                    cout << "Error US05: Family " << FamArr[currID]->get_id() <<"'s husband died before being married.\n";
                 }
                 //Check if husband is male
                 if (IndiArr[memberID]->get_sex() != true) {
-                    cout << "Error US21: Husband is not male.\n";
+                    cout << "Error US21: Family " << FamArr[currID]->get_id() <<"'s husband is not male.\n";
                 }
                 //Checks Husband isn't married to descendant
                 if (FamArr[currID]->get_wife() != -1) {
@@ -1741,11 +1744,11 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 }
                 //Check if wife was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-                    cout << "Error US05: Wife died before being married.\n";
+                    cout << "Error US05: Family " << FamArr[currID]->get_id() <<"'s wife died before being married.\n";
                 }
                 //Check if wife is female
                 if (IndiArr[memberID]->get_sex() != false) {
-                    cout << "Error US21: Wife is not female.\n";
+                    cout << "Error US21: Family " << FamArr[currID]->get_id() <<"'s wife is not female.\n";
                 }
                 //Checks Wife isn't married to descendant
                 if (FamArr[currID]->get_husb() != -1) {
@@ -1754,7 +1757,7 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             }
             //Checks for marriage before divorce
             if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
-                cout << "Error US04: Family divorced before being married.\n";
+                cout << "Error US04: Family " << FamArr[currID]->get_id() <<" divorced before being married.\n";
             }
             
             // Check unique family by spouse names and marriage date
