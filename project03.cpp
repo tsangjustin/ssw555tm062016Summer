@@ -1018,11 +1018,10 @@ void isCorrespondingFamS(int &currID) {
     }
 }
 
-int getAmtIndi(int &num) {
+int getAmtIndi(int num) {
     int len = 0;
-    int amtIndi = num;
-    while (amtIndi > 0) {
-        amtIndi /= 10;
+    while (num > 0) {
+        num /= 10;
         ++len;
     }
     return len;
@@ -1060,7 +1059,7 @@ void listLivingMarried(int &maxFam) {
     cout << "|_________|_________|\n";
 }
 
-void printDescendants(Fam* f) {
+string printDescendants(Fam* f) {
     vector<int> chil = f->get_chil();
     for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
         cout << IndiArr[*c]->get_name() << "\n";
@@ -1069,6 +1068,61 @@ void printDescendants(Fam* f) {
             printDescendants(FamArr[*dc]);
         }
     }
+}
+
+int getLongestSpouse(int &maxIndi) {
+    int longestSpouse = 0;
+    for (int i = 0; i <= maxIndi; ++i) {
+        if (IndiArr[i] != NULL) {
+            int lenSpouse = 0;
+            vector<int> spouses = IndiArr[i]->get_fams();
+            for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
+                if (IndiArr[i]->get_sex()) {
+                    lenSpouse += getAmtIndi(FamArr[*s]->get_wife()) + 1;
+                } else {
+                    lenSpouse += getAmtIndi(FamArr[*s]->get_husb()) + 1;
+                }
+            }
+            if (lenSpouse > longestSpouse) {
+                longestSpouse = lenSpouse;
+            }
+        }
+    }
+    return longestSpouse;
+}
+
+int getDescendants(int &i) {
+    int lenChil = 0;
+     vector<int> spouses = IndiArr[i]->get_fams();
+    for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
+        vector<int> chil = FamArr[*s]->get_chil();
+        for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
+            lenChil += getAmtIndi(*c);
+            lenChil += getDescendants(*c);
+        }
+    }
+    return lenChil;
+}
+
+int getLongestDescendants(int &maxIndi) {
+    int longestDescendants = 0;
+    for (int i = 0; i <= maxIndi; ++i) {
+        if (IndiArr[i] != NULL) {
+            int lenChil = 0;
+            vector<int> spouses = IndiArr[i]->get_fams();
+            for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
+                vector<int> chil = FamArr[*s]->get_chil();
+                for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
+                    lenChil += getAmtIndi(*c);
+                    lenChil += getDescendants(*c);
+                }
+            }
+            if (lenChil > longestDescendants) {
+                longestDescendants = lenChil;
+            }
+        }
+    }
+    return longestDescendants;
 }
 
 /* Function lists all living spouses and descendants of people who died in last 30 days */
@@ -1119,16 +1173,64 @@ void listRecentSurvivors(int &maxIndi) {
                 MonthBack[0] = 30 - MonthBack[0];
                 break;
         }
+        int longestSpouse = getLongestSpouse(maxIndi);
+        if (longestSpouse % 2 == 1) {
+            ++longestSpouse;
+        }
+        int lenColumn = 0;
+        cout << "| DECEASE ID | ";
+        lenColumn = (longestSpouse - 10) / 2;
+        for (int i = 0; i < lenColumn; ++i) {
+            cout << " ";
+        }
+        cout << "SPOUSES ID";
+        for (int i = 0; i < lenColumn; ++i) {
+            cout << " ";
+        }
+        cout << " | ";
+        int longestChildren = getLongestDescendants(maxIndi);
+        if (longestChildren % 2 == 1) {
+            ++longestChildren;
+        }
+        lenColumn = (longestChildren - 14) / 2;
+        for (int i = 0; i < lenColumn; ++i) {
+            cout << " ";
+        }
+        cout << "DESCENDANTS ID";
+        for (int i = 0; i < lenColumn; ++i) {
+            cout << " ";
+        }
+        cout << " |\n";
+        cout << "|____________|_";
+        if (longestSpouse < 10) {
+            longestSpouse = 10;
+        }
+        for (int i = 0; i < longestSpouse; ++i) {
+            cout << "_";
+        }
+        cout << "_|_";
+        if (longestChildren < 14) {
+            longestChildren = 14;
+        }
+        for (int i = 0; i < longestChildren; ++i) {
+            cout << "_";
+        }
+        cout << "_|\n";
         for (int i = 0; i <= maxIndi; ++i) {
             if (IndiArr[i] != NULL) {
                 if (IndiArr[i]->get_death()[2] > 0) {
                     if (dateCompare(MonthBack, IndiArr[i]->get_death()) > 0) {
+                        cout << "| " << i;
+                        for (int rs = getAmtIndi(i); rs < 10; ++rs) {
+                            cout << " ";
+                        }
+                        cout << " |";
                         vector<int> family = IndiArr[i]->get_fams();
                         for (vector<int>::iterator fs = family.begin(); fs != family.end(); ++fs) {
                             if (IndiArr[i]->get_sex()) {
-                                cout << "Wife: " << IndiArr[FamArr[*fs]->get_wife()]->get_name() << "\n";
+                                cout << " " << FamArr[*fs]->get_wife();
                             } else {
-                                cout << "Husband: " << IndiArr[FamArr[*fs]->get_husb()]->get_name() << "\n";
+                                cout << " " << FamArr[*fs]->get_husb();
                             }
                             cout << "Descendants:\n";
                             printDescendants(FamArr[*fs]);
@@ -1137,13 +1239,23 @@ void listRecentSurvivors(int &maxIndi) {
                 }
             }
         }
+        // Closer
+        cout << "|____________|_";
+        for (int i = 0; i < longestSpouse; ++i) {
+            cout << "_";
+        }
+        cout << "_|_";
+        for (int i = 0; i < longestChildren; ++i) {
+            cout << "_";
+        }
+        cout << "_|\n";
     }   
 }
 
 /* Function lists all deceased individuals */
 void listDeceased(int &maxIndi) {
     for (int i = 0; i <= maxIndi; ++i) {
-        if(IndiArr[i] != NULL) {
+        if (IndiArr[i] != NULL) {
             //If individual is dead
 			if(IndiArr[i]->get_death()[2] > 0) {
 				cout << "US29: " << IndiArr[i]->get_name() << "\n";
