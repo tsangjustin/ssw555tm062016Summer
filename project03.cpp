@@ -12,30 +12,10 @@
 #include <sstream>
 #include <ctime>
 
-#ifdef unix
-#include <dirent.h>
-#elif _WIN32
-#include <Windows.h>
-#endif
-
 using namespace std;
 
-#if __unix__
-vector<string> getFiles() {
-    DIR *dpdf;
-    struct dirent *epdf;
-    vector<string> names;
-
-    dpdf = opendir("./GED_Files/*.ged");
-    if (dpdf != NULL) {
-        while (epdf = readdir(dpdf)) {
-            // printf("Filename: %s",epdf->d_name);
-            std::cout << epdf->d_name << "\n";
-        }
-    }
-    return names;
-}
-#elif _WIN32
+#ifdef _WIN32
+#include <Windows.h>
 vector<string> getFiles() {
     vector<string> names;
     string searchPath = ".\\GED_Files\\*.ged";
@@ -52,6 +32,7 @@ vector<string> getFiles() {
     return names;
 }
 #endif
+
 vector<string> files = getFiles();
 
 // Array of valid tags
@@ -1824,10 +1805,25 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
 int main() {
     // vector<string> files = get_all_files_names_within_folders("./GED");
     string fileNameInput;
+    int fileNum = 1;
+    int option = 0;
     // Take input of ged file to take in as input
-    cout << "Enter ged file name: ";
-    getline(cin, fileNameInput);
-    fileNameInput += ".ged";
+    cout << "List GED Files:\n";
+    for (vector<string>::iterator it = files.begin(); it != files.end(); ++it) {
+        cout << fileNum << ". " << *it << "\n";
+        ++fileNum;
+    }
+    --fileNum;
+    cout << "Enter GED file number (1-" << fileNum << "): ";
+    cin >> option;
+    while (cin.fail() || ((option < 1) || (option > fileNum))) {
+        cout << "Failed to recognize input. Please try again...\n";
+        cout << "Enter GED file number (1-" << fileNum << "): ";
+        cin.clear();
+        cin.ignore(256, '\n');
+        cin >> option;
+    }
+    fileNameInput = files[option - 1];
     ifstream gedFile ("GED_Files/"+fileNameInput);
     ofstream outputFile;
     //int levelNumber = -1;
@@ -1904,7 +1900,7 @@ int main() {
                 getline(gedFile, line);
             }
             //printScreen(outputFile, maxIndi, maxFam, longestName);
-            int option = 0;
+            option = 0;
             while (option != 8) {
                 cout << "\nWhat would you like to do?\n";
                 cout << "1. Show all INDI\n";
