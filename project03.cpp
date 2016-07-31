@@ -1030,6 +1030,8 @@ int getAmtIndi(int &num) {
 
 /* Function lists all living married couples */
 void listLivingMarried(int &maxFam) {
+    cout << "| HUSB ID | WIFE ID |\n";
+    cout << "|_________|_________|\n";
     for (int f = 0; f <= maxFam; ++f) {
         if (FamArr[f] != NULL) {
             // If no divorce
@@ -1039,13 +1041,23 @@ void listLivingMarried(int &maxFam) {
                 if ((husb > -1) && (wife > -1)) {
                     if ((IndiArr[husb] != NULL) && (IndiArr[wife] != NULL)) {
                         if ((IndiArr[husb]->get_death()[2] == 0) && (IndiArr[wife]->get_death()[2] == 0)) {
-                            cout << "US30: " << IndiArr[husb]->get_name() << " " << IndiArr[wife]->get_name() << "\n";
+                            cout << "| " << husb;
+                            for (int i = getAmtIndi(husb); i < 7; ++i) {
+                                cout << " ";
+                            }
+                            cout << " | ";
+                            cout << wife;
+                            for (int i = getAmtIndi(wife); i < 7; ++i) {
+                                cout << " ";
+                            }
+                            cout << " |\n";
                         }
                     }
                 }
             }
         }
     }
+    cout << "|_________|_________|\n";
 }
 
 void printDescendants(Fam* f) {
