@@ -1000,6 +1000,7 @@ void isCorrespondingFamS(int &currID) {
     }
 }
 
+/* Get length of num input */
 int getAmtIndi(int num) {
     int len = 0;
     while (num > 0) {
@@ -1041,6 +1042,7 @@ void listLivingMarried(int &maxFam) {
     cout << "|_________|_________|\n";
 }
 
+/* Function returns all descendants of INDI with indi ID */
 string printDescendants(int &indi) {
     string id = "";
     stringstream buffer;
@@ -1058,6 +1060,7 @@ string printDescendants(int &indi) {
     return id;
 }
 
+/* Function returns length of longest spouses */
 int getLongestSpouse(int &maxIndi) {
     int longestSpouse = 0;
     for (int i = 0; i <= maxIndi; ++i) {
@@ -1079,6 +1082,7 @@ int getLongestSpouse(int &maxIndi) {
     return longestSpouse;
 }
 
+/* Function returns length of descendants of INDI with id i */
 int getDescendants(int &i) {
     int lenChil = 0;
      vector<int> spouses = IndiArr[i]->get_fams();
@@ -1092,6 +1096,7 @@ int getDescendants(int &i) {
     return lenChil;
 }
 
+/* Function returns length of longest descendants */
 int getLongestDescendants(int &maxIndi) {
     int longestDescendants = 0;
     for (int i = 0; i <= maxIndi; ++i) {
@@ -1273,6 +1278,7 @@ void listDeceased(int &maxIndi) {
 	cout << "|_____________|\n";
 }
 
+/* Function returns tabulated list of all orphans */
 void listOrphans(int &maxFam) {
 	cout << "| ORPHAN ID |\n";
     cout << "|___________|\n";
@@ -1355,29 +1361,6 @@ void printIndiStats(ofstream &outputFile, int &currID) {
     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
     outputFile << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
     outputFile << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
-}
-
-void printFamilyMembers(ofstream &outputFile, Fam* family) {
-    // Print father's name
-    int memberID = family->get_husb(); 
-    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
-        cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
-        outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
-    }
-
-    // Print mother's name
-    memberID = family->get_wife();
-    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
-        cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
-        outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
-    }
-
-    vector<int> children = family->get_chil();
-    for (vector<int>::iterator chil = children.begin(); chil != children.end(); ++chil) {
-        Indi* kid = IndiArr[*chil];
-        cout << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
-        outputFile << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
-    }
 }
 
 int getLongestFamily(int &maxFam) {
