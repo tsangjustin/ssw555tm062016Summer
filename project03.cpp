@@ -11,6 +11,7 @@
 #include <vector>
 #include <sstream>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
 
@@ -1229,7 +1230,56 @@ bool olderThan150(int *birth, int *death) {
 	return retComp;
 }
 
-void checkUniqueFamS(int &currID, int &maxFam) {
+/*
+* Returns the last name of the individual - assumed to be the last word in name
+* ex. "A B" -> B, "A B C" -> C
+*/
+string getLastName(string name) {
+    string buffer = "";
+    int strLen = name.length();
+    for (int i = 0; i < strLen; i++) {
+        if (name[i] == ' ') {
+            // clear the buffer, not currently last name
+            buffer = "";
+        } else {
+            buffer += name[i];
+        }
+    }
+    return buffer;
+}
+
+/*
+* All males of the same family have the same last name
+*/
+void checkMaleLastnames (Fam &fam) {
+    string lastName = "";
+
+    // Assuming husb is male, and wife is female
+    if ( fam.get_husb() != -1) {
+        Indi* husb = IndiArr[fam.get_husb()];
+        lastName = getLastName(husb->get_name());
+    }
+    
+
+     vector <int> chil = fam.get_chil();
+    if (chil.size() > 0) {
+        for (std::vector<int>::iterator c = chil.begin(); c != --chil.end(); c++) {
+            if (*c != -1) {
+                Indi * child = IndiArr[*c];
+                string childLastName = getLastName(child->get_name());
+                if (lastName == "") {
+                    lastName = childLastName;
+                }
+                else if (lastName != childLastName) {
+                    cout << "Anomality US16: Male " << child->get_name() << " (" << child->get_id() \
+                    << ") does not share his family's last name (" << fam.get_id() << ").\n";
+                }
+            }
+        }
+    }
+}
+
+void checkUniqueFamS(int &currID, int &maxFam) { 
     for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
         if (FamArr[restFamID] != NULL) {
             // Same spouses
@@ -1654,6 +1704,22 @@ int getLongestFamily(int &maxFam) {
     return longestFam;
 }
 
+bool sortByAge(const int & indi1, const int &indi2) {
+    if (indi1 == -1)
+        return false;
+    else if (indi2 == -1)
+        return false;
+    int * birth1 = IndiArr[indi1]->get_birth();
+    int * birth2 = IndiArr[indi2]->get_birth();
+    bool val = dateCompare(birth1, birth2);
+    if (val == -1) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 void printFamStats(ofstream &outputFile, int &currID) {
     int* marr = FamArr[currID]->get_marr();
     int* divorce = FamArr[currID]->get_div();
@@ -1695,6 +1761,7 @@ void printFamStats(ofstream &outputFile, int &currID) {
     if (children.size() <= 0) {
         strChildren = " NULL";
     } else {
+        std::sort(children.begin(), children.end(), sortByAge);
         for (vector<int>::iterator c = children.begin(); c != children.end(); ++c) {
             string temp;
             buffer << *c;
@@ -2063,6 +2130,7 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             checkUniqueIndi(currID, maxIndi);
             checkSameName(*FamArr[currID]);
             MarriedUnder14(*IndiArr[currID]);
+            checkMaleLastnames(*FamArr[currID]);
         }
     }
     ++errorline;
