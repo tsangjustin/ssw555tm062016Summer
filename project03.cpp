@@ -35,7 +35,6 @@ vector<string> getFiles() {
 
 vector<string> files = getFiles();
 
-// Array of valid tags
 string levelZeroTags[] = {"INDI", "FAM"};
 string IndiTags[] = {"NAME", "SEX", "BIRT", "DEAT", "FAMC", "FAMS"};
 string FamTags[] = {"CHIL", "MARR", "DIV", "HUSB", "WIFE"};
@@ -45,6 +44,8 @@ string FamTags[] = {"CHIL", "MARR", "DIV", "HUSB", "WIFE"};
 vector< Indi* > IndiArr;
 vector< Fam* > FamArr;
 int currDate[3];
+int IndiAge;
+int errorline = 1;
 int colID, colName, colGender, colBirth, colDeath;
 int colHusb, colWife, colChil, colMarr, colDiv;
 
@@ -85,7 +86,7 @@ void getCurrentDate() {
 }
 
 /**
- * Checks that the tag is in the list of valid tags for its level 
+ * Checks that the tag is in the list of valid tags for its level
  */
 bool isValidTag(bool isLevelOneTag, bool isIndi, string &tag) {
     // Check if user/fam info tag
@@ -312,6 +313,314 @@ int addFam(int &index, string &line) {
     return 0;
 }
 
+/*
+ * Function compares date section of two given int array
+ * Returns -1 if DateA is later than DateB
+ * Returns  1 if DateA is earlier than DateB
+ * Returns  0 if DateA is the same as DateB
+ */
+int getGreaterDate(int &date1, int &date2) {
+    // Both dates have same value
+    if (date1 == date2) {
+        return 0;
+    // If date 1 is later than date 2
+    } else if (date1 > date2) {
+        return -1;
+    // If date 1 is earlier than date 2
+    } else {
+        return 1;
+    }
+}
+
+/*
+ * Function compares dates of two given int array
+ * Returns -1 if DateA is later than DateB
+ * Returns  1 if DateA is earlier than DateB
+ * Returns  0 if DateA is the same as DateB
+ * Returns  0 if either DateA or Date B is missing
+ */
+int dateCompare(int* arrA, int* arrB) {
+    // Compare years
+    // Check if a date was actually provided
+	if ((arrA[2] == 0) || (arrB[2] == 0)) {
+        return 0;
+	}
+    int retCmp = 0;
+    for (int datePart = 2; ((datePart >= 0) && (retCmp == 0)); --datePart) {
+        retCmp = getGreaterDate(arrA[datePart], arrB[datePart]);
+    }
+    return retCmp;
+}
+
+/*US01
+Dates before current date
+Dates (birth, marriage, divorce, death) should not be after the current date*/
+bool checkFutureDates(int *birth, int *death, int *marr, int *div){
+    bool birthComp;
+    bool deathComp;
+    bool marrComp;
+    bool divComp;
+    if(currDate[2] < birth[2]){
+        birthComp = true;
+    } else if(currDate[2] < death[2]){
+        deathComp = true;
+    } else if(currDate[2] < marr[2]){
+        marrComp = true;
+    } else if(currDate[2] < div[2]){
+        divComp = true;
+    }
+    if (birthComp == true){
+        cout << "Error US01: Date of Birth is in future, please correct the error\n"<<errorline<<"\n";
+    } else if(deathComp == true){
+        cout << "Error US01: Date of Death is in future, please correct the error\n"<<errorline<<"\n";
+    } else if(marrComp == true){
+        cout << "Error US01: Date of Marriage is in future, please correct the error\n"<<errorline<<"\n";
+    } else if(divComp == true){
+        cout << "Error US01: Date of Divorce is in future, please correct the error\n"<<errorline<<"\n";
+    }
+}
+
+/*US10
+Marriage after 14
+Marriage should be at least 14 years after birth of both spouses*/
+
+bool MarriedUnder14(Indi &indi){
+    bool isError = false;
+    vector<int> famc = indi.get_famc();
+    for (vector<int>::iterator f = famc.begin(); f != famc.end(); ++f){
+        Fam *fam = FamArr[*f];
+        if(fam->get_wife() != -1){
+              Indi* mom = IndiArr[fam->get_wife()];
+              int* momBirth = mom->get_birth();
+              int* momMarr =  fam->get_marr();
+              if((momMarr[2] - momBirth[2]) < 14){
+                isError = true;
+              }
+        }
+        if(fam->get_husb() != -1){
+            Indi* dad = IndiArr[fam->get_husb()];
+            int* dadBirth = dad->get_birth();
+            int* dadMarr = fam->get_marr();
+            if(dadMarr[2] - dadBirth[2] < 14){
+                isError =  true;
+              }
+        }
+    } if(isError == true){
+        cout << "Error US10: Individual cannot be married while under 14 \n"<<errorline<<"\n";
+    }
+}
+
+/*US23
+Unique name and birth date
+No more than one individual with the same name and birth date should appear in a GEDCOM files*/
+
+void checkUniqueIndi(int &currID, int &maxIndi){
+    for(int restIndiID = currID + 1; restIndiID <= maxIndi; ++restIndiID){
+        if(IndiArr[restIndiID] != NULL){
+            if((IndiArr[currID]->get_name() == IndiArr[restIndiID]->get_name())){
+                  cout<< "Individuals" << IndiArr[currID]->get_id() << "and" << IndiArr[restIndiID]->get_id() << "Error US23: have same name\n"<<errorline<<"\n";
+            } else{
+                if(((IndiArr[currID]->get_birth() == IndiArr[restIndiID]-> get_birth()))){
+                    cout<< "Individuals" << IndiArr[currID]->get_id() << "and" << IndiArr[restIndiID]->get_id() << "Error US23: have same date of birth\n"<<errorline<<"\n";
+                }
+            }
+        }
+    }
+}
+
+/*US25
+Unique first names in families
+No more than one child with the same name and birth date should appear in a family*/
+
+bool checkSameName(Fam &fam){
+    Indi * mom;
+    Indi * dad;
+    string momName;
+    string dadName;
+    string Elder;
+    string Younger;
+
+    if(fam.get_wife() != -1){
+        mom = IndiArr[fam.get_wife()];
+        momName = mom->get_name();
+    }
+    if(fam.get_husb() != -1){
+        dad = IndiArr[fam.get_husb()];
+        dadName = dad->get_name();
+    }
+    vector <int> chil = fam.get_chil();
+    if(chil.size() <= 1){
+        return true;
+    }
+    for(std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++){
+        Indi * child = IndiArr[*c];
+        if(fam.get_wife() != -1){
+            if(momName == child->get_name()){
+                cout << "Error US25: Mother and child cannot have same name\n"<<errorline<<"\n";
+            }
+        }
+        if(fam.get_husb() != -1){
+            if(dadName == child->get_name()){
+                cout << "Error US25: Father and child cannot have same name\n"<<errorline<<"\n";
+            }
+        }
+        for(std::vector<int>::iterator S = chil.begin(); S != --chil.end(); S++){
+         for(std::vector<int>::iterator J = S + 1; J != chil.end(); J++){
+         Indi * Senior = IndiArr[*S];
+         Indi * Junior = IndiArr[*J];
+         Elder = Senior->get_name();
+         Younger = Junior->get_name();
+
+         if(Elder == Younger){
+            cout<<"Error US25: Siblings cannot have same name\n"<<errorline<<"\n";
+         }
+         }
+        }
+    }
+}
+
+/*US27
+Include individual ages
+Include person's current age when listing individuals*/
+
+int PersonsAge(Indi &indi, int currID, int &maxIndi){
+    int* birth = indi.get_birth();
+    int* death = indi.get_death();
+    //for(currID = 0; currID <= maxIndi; ++currID){
+        if(IndiArr[currID] != NULL){
+            if(death[2] == 0){
+                IndiAge = currDate[2] - birth[2];
+            }else{
+                IndiAge = death[2] - birth[2];
+            }
+        }
+return IndiAge;
+}
+/*US35
+List recent birth
+List individuals who were born in last 30 days*/
+void listRecentBirth(int &maxIndi) {
+    // Get 1 month back and run dateCompare() to check that death date is later than 1 month before date
+    int MonthBack[3];
+    if (((currDate[1] >= 1) && (currDate[1] <= 12)) &&
+       ((currDate[0] >= 1) && (currDate[0] <= 31)) &&
+       (currDate[2] >= 1)) {
+        MonthBack[0] = currDate[0];
+        MonthBack[1] = currDate[1];
+        MonthBack[2] = currDate[2];
+
+        MonthBack[0] -= 30;
+        if (MonthBack[0] <= 0) {
+            // Check if January
+            if (MonthBack[1] == 1) {
+                MonthBack[1] = 12;
+                MonthBack[2] -= 1;
+            } else {
+                MonthBack[1] -= 1;
+            }
+        }
+        switch (MonthBack[1]) {
+            // February
+            case (2):
+                if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
+                    MonthBack[0] = 29 - MonthBack[0];
+                } else {
+                    MonthBack[0] = 28 - MonthBack[0];
+                }
+                break;
+            // January, March, May, July, August, October, December
+            case (1):
+            case (3):
+            case (5):
+            case (7):
+            case (8):
+            case (10):
+            case (12):
+                MonthBack[0] = 31 - MonthBack[0];
+                break;
+            // April, June, September, November
+            case (4):
+            case (6):
+            case (9):
+            case (11):
+                MonthBack[0] = 30 - MonthBack[0];
+                break;
+        }
+        for (int i = 0; i <= maxIndi; ++i) {
+            if (IndiArr[i] != NULL) {
+                if (IndiArr[i]->get_death()[2] > 0) {
+                    if (dateCompare(MonthBack, IndiArr[i]->get_birth()) > 0) {
+                                cout << "US35 Name: " << IndiArr[i]->get_name() << "\n";
+                                cout << "US35 Birth: " << IndiArr[i]->get_birth() << "\n";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+/*US36
+List recent deaths
+List individuals who died in last 30 days*/
+void listRecentDeath(int &maxIndi) {
+    // Get 1 month back and run dateCompare() to check that death date is later than 1 month before date
+    int MonthBack[3];
+    if (((currDate[1] >= 1) && (currDate[1] <= 12)) &&
+       ((currDate[0] >= 1) && (currDate[0] <= 31)) &&
+       (currDate[2] >= 1)) {
+        MonthBack[0] = currDate[0];
+        MonthBack[1] = currDate[1];
+        MonthBack[2] = currDate[2];
+
+        MonthBack[0] -= 30;
+        if (MonthBack[0] <= 0) {
+            // Check if January
+            if (MonthBack[1] == 1) {
+                MonthBack[1] = 12;
+                MonthBack[2] -= 1;
+            } else {
+                MonthBack[1] -= 1;
+            }
+        }
+        switch (MonthBack[1]) {
+            // February
+            case (2):
+                if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
+                    MonthBack[0] = 29 - MonthBack[0];
+                } else {
+                    MonthBack[0] = 28 - MonthBack[0];
+                }
+                break;
+            // January, March, May, July, August, October, December
+            case (1):
+            case (3):
+            case (5):
+            case (7):
+            case (8):
+            case (10):
+            case (12):
+                MonthBack[0] = 31 - MonthBack[0];
+                break;
+            // April, June, September, November
+            case (4):
+            case (6):
+            case (9):
+            case (11):
+                MonthBack[0] = 30 - MonthBack[0];
+                break;
+        }
+        for (int i = 0; i <= maxIndi; ++i) {
+            if (IndiArr[i] != NULL) {
+                if (IndiArr[i]->get_death()[2] > 0) {
+                     if (dateCompare(MonthBack, IndiArr[i]->get_death()) > 0) {
+                                cout << "US35 Name: " << IndiArr[i]->get_name() << "\n";
+                                cout << "US36 Death: " << IndiArr[i]->get_death() << "\n";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 bool validateDate(int &day, int &mth, int &yr) {
     int permDay = day;
     int permMth = mth;
@@ -378,7 +687,7 @@ bool validateDate(int &day, int &mth, int &yr) {
     }
     if (!(isValid)) {
         cout << "Error US42: Invalid date (" << permMth << "/" << permDay << "/" <<
-                permYr << ")\n";
+                permYr << ")\n"<<errorline<<"\n";
     }
     return isValid;
 }
@@ -410,12 +719,12 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
     // Check if "valid" date provided
     if (!(validateDate(day, mth, yr))) {
         if (isIndi) {
-            cout << "Error US42: " << ((tag == 1) ? "Birth" : "Death") << " date of " << 
-                    IndiArr[index]->get_name() << "(" << IndiArr[index]->get_id() << 
-                    ")" << " is an invalid date.\n";
+            cout << "Error US42: " << ((tag == 1) ? "Birth" : "Death") << " date of " <<
+                    IndiArr[index]->get_name() << "(" << IndiArr[index]->get_id() <<
+                    ")" << " is an invalid date.\n"<<errorline<<"\n";
         } else {
-            cout << "Error US42: " << ((tag == 1) ? "Marriage" : "Divorce") << " date of " << 
-                    FamArr[index]->get_id() << " is an invalid date.\n";
+            cout << "Error US42: " << ((tag == 1) ? "Marriage" : "Divorce") << " date of " <<
+                    FamArr[index]->get_id() << " is an invalid date.\n"<<"\n"<<errorline<<"\n";
         }
     }
     switch (tag) {
@@ -442,45 +751,6 @@ bool addDate(bool &isIndi, int &index, int &tag, string &line) {
 }
 
 /*
- * Function compares date section of two given int array
- * Returns -1 if DateA is later than DateB
- * Returns  1 if DateA is earlier than DateB
- * Returns  0 if DateA is the same as DateB
- */
-int getGreaterDate(int &date1, int &date2) {
-    // Both dates have same value
-    if (date1 == date2) {
-        return 0;
-    // If date 1 is later than date 2
-    } else if (date1 > date2) {
-        return -1;
-    // If date 1 is earlier than date 2
-    } else {
-        return 1;
-    }
-}
-
-/*
- * Function compares dates of two given int array
- * Returns -1 if DateA is later than DateB
- * Returns  1 if DateA is earlier than DateB
- * Returns  0 if DateA is the same as DateB
- * Returns  0 if either DateA or Date B is missing
- */
-int dateCompare(int* arrA, int* arrB) {
-    // Compare years
-    // Check if a date was actually provided
-	if ((arrA[2] == 0) || (arrB[2] == 0)) {
-        return 0;
-	}
-    int retCmp = 0;
-    for (int datePart = 2; ((datePart >= 0) && (retCmp == 0)); --datePart) {
-        retCmp = getGreaterDate(arrA[datePart], arrB[datePart]);
-    }
-    return retCmp;
-}
-
-/*
 * Checks if an individual has a valid birth date.
 */
 bool checkValidBirth(Indi &indi) {
@@ -493,8 +763,8 @@ bool checkValidBirth(Indi &indi) {
     // Individual was born before they died
     if (dateCompare(birth, death) < 0) {
         //cout << "Error US03: Individual cannot die before they are born.\n";
-        cout << "Error US03: " << indi.get_name() << " (" << indi.get_id() << ") cannot die before they are born.\n";
-        isError = true; 
+        cout << "Error US03: " << indi.get_name() << " (" << indi.get_id() << ") cannot die before they are born.\n"<<errorline<<"\n";
+        isError = true;
     }
 
     // Individual was born before their parents died
@@ -511,7 +781,7 @@ bool checkValidBirth(Indi &indi) {
                 //cout << "Error US09: Individual cannot be born after the death of mother.\n";
                 cout << "Error US09: " << indi.get_name() << " (" << indi.get_id() \
                     << ") cannot be born after the death of mother " << mom->get_name() \
-                    << " (" << mom->get_id() << ").\n";
+                    << " (" << mom->get_id() << ").\n"<<errorline<<"\n";
                 isError = true;
             }
         }
@@ -538,7 +808,7 @@ bool checkValidBirth(Indi &indi) {
                 //cout << "Error: Individual cannot be born 9 months after the death of father.\n";
                 cout << "Error US09: " << indi.get_name() << " (" << indi.get_id() \
                     << ") cannot be born 9 months after the death of father " \
-                    << dad->get_name() << " (" << dad->get_id() << ").\n";
+                    << dad->get_name() << " (" << dad->get_id() << ").\n"<<errorline<<"\n";
                 isError = true;
             }
         }
@@ -554,7 +824,7 @@ bool checkValidBirth(Indi &indi) {
         if (marr != NULL) {
             if (dateCompare(birth, marr) < 0){
                 // cout << "Error: Individual cannot be married before birth.\n";
-                cout << "Error US02: " << indi.get_name() << " (" << indi.get_id() << ") cannot be married before birth.\n";
+                cout << "Error US02: " << indi.get_name() << " (" << indi.get_id() << ") cannot be married before birth.\n"<<errorline<<"\n";
                 isError = true;
             }
         }
@@ -608,7 +878,7 @@ bool parentsNotTooOld(Fam &fam) {
             if (dateCompare(momFinal, child->get_birth()) > 0) {
                 isError = true;
                 cout << "Error US12: Mother " << mom->get_name() << " (" << mom->get_id() << ") was too old when child " \
-                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"; 
+                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"<<errorline<<"\n";
             }
         }
         if (fam.get_husb() != -1) {
@@ -616,12 +886,12 @@ bool parentsNotTooOld(Fam &fam) {
             if (dateCompare(dadFinal, child->get_birth()) > 0) {
                 isError = true;
                 cout << "Error US12: Father " << dad->get_name() << " (" << dad->get_id() << ") was too old when child " \
-                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"; 
+                    << child->get_name() << " (" << child->get_id() << ") was born in family " << fam.get_id() <<".\n"<<errorline<<"\n";
             }
         }
     }
 
-    if (isError) 
+    if (isError)
         return false;
     return true;
 }
@@ -642,7 +912,7 @@ bool checkSiblingSpacing(Fam &fam) {
     for (std::vector<int>::iterator c1 = chil.begin(); c1 != --chil.end(); c1++) {
         for (std::vector<int>::iterator c2 = c1 + 1; c2 != chil.end(); c2++) {
             localError = false;
-            
+
             Indi * child1 = IndiArr[*c1];
             Indi * child2 = IndiArr[*c2];
             birth1 = child1->get_birth();
@@ -675,7 +945,7 @@ bool checkSiblingSpacing(Fam &fam) {
                 isError = localError;
                 cout << "Error US13: Siblings " << child1->get_name() << " (" << child1->get_id() \
                     << ") and " << child2->get_name() << " (" << child2->get_id() << ") in family " \
-                    << fam.get_id() << " are born less than 9 months apart, and not twins.\n";
+                    << fam.get_id() << " are born less than 9 months apart, and not twins.\n"<<errorline<<"\n";
             }
         }
     }
@@ -733,9 +1003,9 @@ bool checkBigamy(Indi &indi) {
 
                 if (localError) {
                     cout << "Anomality US11: " << indi.get_name() << " (" << indi.get_id() <<
-                            ") has been in two or more marriages at the same time.\n";
+                            ") has been in two or more marriages at the same time.\n"<<errorline<<"\n";
                     isError = true;
-                } 
+                }
             }
         }
     }
@@ -751,7 +1021,7 @@ bool checkSiblingMarriage (Fam &fam) {
     if (fam.get_wife() == -1 || fam.get_husb() == -1) {
         return true;
     }
-    
+
     Indi* wife = IndiArr[fam.get_wife()];
     Indi* husb = IndiArr[fam.get_husb()];
 
@@ -763,7 +1033,7 @@ bool checkSiblingMarriage (Fam &fam) {
         for (std::vector<int>::iterator h = husbFam.begin(); h != husbFam.end(); h++) {
             if (*w == *h) {
                 cout << "Anomality US18: Siblings " << wife->get_name() << " (" << wife->get_id() \
-                    << ") and " << husb->get_name() << " (" << husb->get_id() << ") are married.\n";
+                    << ") and " << husb->get_name() << " (" << husb->get_id() << ") are married.\n"<<errorline<<"\n";
                 return false;
             }
         }
@@ -792,7 +1062,7 @@ void checkWedlock(Indi &indi) {
 					}
 				}
 			} else {
-				cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n";
+				cout << "Error US08: " << indi.get_name() << " (" << indi.get_id() << ") born out of wedlock.\n"<<errorline<<"\n";
 			}
 		}
 	}
@@ -805,11 +1075,10 @@ void checkParentDescendantMarriage(Indi *parent, Indi *descendant)
 	for (vector<int>::iterator currFamS = famS.begin(); currFamS != famS.end(); currFamS++) {
 		vector<int> chil = FamArr[*currFamS]->get_chil();
 		for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
-			
+
 			Indi* child = IndiArr[*c];
 			if (child->get_id() == descendant->get_id()) {
-				cout << "Error US17: " << parent->get_name() << " (" << parent->get_id() << ") is married to descendant " <<
-                        child->get_name() << " (" << child->get_id() << ").\n";
+				cout << "Error US17: Parent is married to descendant. \n"<<errorline<<"\n";
 				break;
 			} else {
 				checkParentDescendantMarriage(child, descendant);
@@ -839,7 +1108,7 @@ bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
     Indi* AuntUncle = ((isUncle) ? IndiArr[fam.get_husb()] : IndiArr[fam.get_wife()]);
     int spouseIndex = ((isUncle) ? fam.get_wife() : fam.get_husb());
     if ((AuntUncle->get_famc().size()) <= 0) {
-        return false;   
+        return false;
     }
     int AuntUnclefamC = (AuntUncle->get_famc()).at(0);
     vector<int> AuntUncleSiblings = FamArr[AuntUnclefamC]->get_chil();
@@ -852,7 +1121,7 @@ bool checkAuntUncleRelation(Fam &fam, bool isUncle) {
                 if ((*currNieceNephew) == spouseIndex) {
                     cout << "Error US20: " << ((AuntUncle->get_sex()) ? "Uncle " : "Aunt ")  << AuntUncle->get_name() << " (" << AuntUncle->get_id() <<
                             ") is married to " << ((IndiArr[*currNieceNephew]->get_sex()) ? "nephew " : "niece ") << IndiArr[*currNieceNephew]->get_name() <<
-                            "(" << IndiArr[*currNieceNephew]->get_id() << ")\n";
+                            "(" << IndiArr[*currNieceNephew]->get_id() << ")\n"<<errorline<<"\n";
                     err20 = true;
                 }
             }
@@ -882,7 +1151,7 @@ bool checkCousinRelation(Fam &fam, bool isHusb) {
                 for (vector<int>::iterator currCousin = (*currFamChild).begin(); currCousin != (*currFamChild).end(); ++currCousin) {
                     if ((*currCousin) == spouseIndex) {
                         cout << "Error US19: " << cousin->get_name() << "(" << cousin->get_id() << ") and " <<
-                                IndiArr[*currCousin]->get_name() <<"(" << IndiArr[*currCousin]->get_id() << ") are married cousins\n";
+                                IndiArr[*currCousin]->get_name() <<"(" << IndiArr[*currCousin]->get_id() << ") are married cousins\n"<<errorline<<"\n";
                         err19 = true;
                     }
                 }
@@ -906,7 +1175,7 @@ bool checkFirstRelativeMarriage(Fam &fam) {
     checkCousinRelation(fam, true);
     // checkCousinRelation(fam, false);
 
-    return hasRelation; 
+    return hasRelation;
 }
 
 
@@ -959,7 +1228,7 @@ bool olderThan150(int *birth, int *death) {
 	return retComp;
 }
 
-void checkUniqueFamS(int &currID, int &maxFam) { 
+void checkUniqueFamS(int &currID, int &maxFam) {
     for (int restFamID = currID + 1; restFamID <= maxFam; ++restFamID) {
         if (FamArr[restFamID] != NULL) {
             // Same spouses
@@ -967,7 +1236,7 @@ void checkUniqueFamS(int &currID, int &maxFam) {
                 (FamArr[currID]->get_wife() == FamArr[restFamID]->get_wife())) {
                 // Same marriage date
                 if (dateCompare(FamArr[currID]->get_marr(), FamArr[restFamID]->get_marr()) == 0) {
-                    cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same marriage dates\n";
+                    cout << "Families " << FamArr[currID]->get_id() << " and " << FamArr[restFamID]->get_id() << " have same marriage dates\n"<<errorline<<"\n";
                 }
             }
         }
@@ -982,7 +1251,7 @@ void isCorrespondingFamC(int &currID) {
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
         if ((FamArr[*it] == NULL) || (!(FamArr[*it]->checkChild(currID)))) {
             cout << "Error US26: " << IndiArr[currID]->get_name() << "(" << IndiArr[currID]->get_id() <<
-                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n"<<errorline<<"\n";
         }
     }
 }
@@ -995,16 +1264,16 @@ void isCorrespondingFamS(int &currID) {
     for (vector<int>::iterator it = family.begin(); it != family.end(); ++it) {
         if ((FamArr[*it] == NULL) || (!(currID == FamArr[*it]->get_husb())) && (!(currID == FamArr[*it]->get_wife()))) {
             cout << "Error US26: " << IndiArr[currID]->get_name() << "(" << IndiArr[currID]->get_id() <<
-                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n";
+                    ") is not a corresponding child in family " << FamArr[*it]->get_id() << "\n"<<errorline;
         }
     }
 }
 
-/* Get length of num input */
-int getAmtIndi(int num) {
+int getAmtIndi(int &num) {
     int len = 0;
-    while (num > 0) {
-        num /= 10;
+    int amtIndi = num;
+    while (amtIndi > 0) {
+        amtIndi /= 10;
         ++len;
     }
     return len;
@@ -1042,80 +1311,15 @@ void listLivingMarried(int &maxFam) {
     cout << "|_________|_________|\n";
 }
 
-/* Function returns all descendants of INDI with indi ID */
-string printDescendants(int &indi) {
-    string id = "";
-    stringstream buffer;
-    vector<int> fams = IndiArr[indi]->get_fams();
-    for (vector<int>::iterator fs = fams.begin(); fs != fams.end(); ++fs) {
-        vector<int> descFam = FamArr[*fs]->get_chil();
+void printDescendants(Fam* f) {
+    vector<int> chil = f->get_chil();
+    for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
+        cout << IndiArr[*c]->get_name() << "\n";
+        vector<int> descFam = IndiArr[*c]->get_fams();
         for (vector<int>::iterator dc = descFam.begin(); dc != descFam.end(); ++dc) {
-            string temp;
-            buffer << *dc;
-            buffer >> temp;
-            id += " " + temp;
-            id += printDescendants(*dc);
+            printDescendants(FamArr[*dc]);
         }
     }
-    return id;
-}
-
-/* Function returns length of longest spouses */
-int getLongestSpouse(int &maxIndi) {
-    int longestSpouse = 0;
-    for (int i = 0; i <= maxIndi; ++i) {
-        if (IndiArr[i] != NULL) {
-            int lenSpouse = 0;
-            vector<int> spouses = IndiArr[i]->get_fams();
-            for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
-                if (IndiArr[i]->get_sex()) {
-                    lenSpouse += getAmtIndi(FamArr[*s]->get_wife()) + 1;
-                } else {
-                    lenSpouse += getAmtIndi(FamArr[*s]->get_husb()) + 1;
-                }
-            }
-            if (lenSpouse > longestSpouse) {
-                longestSpouse = lenSpouse;
-            }
-        }
-    }
-    return longestSpouse;
-}
-
-/* Function returns length of descendants of INDI with id i */
-int getDescendants(int &i) {
-    int lenChil = 0;
-     vector<int> spouses = IndiArr[i]->get_fams();
-    for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
-        vector<int> chil = FamArr[*s]->get_chil();
-        for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
-            lenChil += getAmtIndi(*c);
-            lenChil += getDescendants(*c);
-        }
-    }
-    return lenChil;
-}
-
-/* Function returns length of longest descendants */
-int getLongestDescendants(int &maxIndi) {
-    int longestDescendants = 0;
-    for (int i = 0; i <= maxIndi; ++i) {
-        if (IndiArr[i] != NULL) {
-            int lenChil = 0;
-            vector<int> spouses = IndiArr[i]->get_fams();
-            for (vector<int>::iterator s = spouses.begin(); s != spouses.end(); ++s) {
-                vector<int> chil = FamArr[*s]->get_chil();
-                for (vector<int>::iterator c = chil.begin(); c != chil.end(); ++c) {
-                    lenChil += getAmtIndi(*c);
-                    lenChil += getDescendants(*c);
-                }
-            }
-            if (lenChil > longestDescendants) {
-                longestDescendants = lenChil;
-            }
-        }
-    }
-    return longestDescendants;
 }
 
 /* Function lists all living spouses and descendants of people who died in last 30 days */
@@ -1128,7 +1332,7 @@ void listRecentSurvivors(int &maxIndi) {
         MonthBack[0] = currDate[0];
         MonthBack[1] = currDate[1];
         MonthBack[2] = currDate[2];
-        
+
         MonthBack[0] -= 30;
         if (MonthBack[0] <= 0) {
             // Check if January
@@ -1139,149 +1343,68 @@ void listRecentSurvivors(int &maxIndi) {
                 MonthBack[1] -= 1;
             }
         }
-        if (MonthBack[0] <= 0) {
-            switch (MonthBack[1]) {
-                // February
-                case (2):
-                    if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
-                        MonthBack[0] = 29 - MonthBack[0];
-                    } else {
-                        MonthBack[0] = 28 - MonthBack[0];
-                    }
-                    break;
-                // January, March, May, July, August, October, December
-                case (1):
-                case (3):
-                case (5):
-                case (7):
-                case (8):
-                case (10):
-                case (12):
-                    MonthBack[0] = 31 - MonthBack[0];
-                    break;
-                // April, June, September, November
-                case (4):
-                case (6):
-                case (9):
-                case (11):
-                    MonthBack[0] = 30 - MonthBack[0];
-                    break;
-            }
+        switch (MonthBack[1]) {
+            // February
+            case (2):
+                if ((MonthBack[2] % 400 == 0) || ((MonthBack[2] % 100 != 0) && (MonthBack[2] % 4 == 0))) {
+                    MonthBack[0] = 29 - MonthBack[0];
+                } else {
+                    MonthBack[0] = 28 - MonthBack[0];
+                }
+                break;
+            // January, March, May, July, August, October, December
+            case (1):
+            case (3):
+            case (5):
+            case (7):
+            case (8):
+            case (10):
+            case (12):
+                MonthBack[0] = 31 - MonthBack[0];
+                break;
+            // April, June, September, November
+            case (4):
+            case (6):
+            case (9):
+            case (11):
+                MonthBack[0] = 30 - MonthBack[0];
+                break;
         }
-        int longestSpouse = getLongestSpouse(maxIndi);
-        if (longestSpouse % 2 == 1) {
-            ++longestSpouse;
-        }
-        int lenColumn = 0;
-        cout << "| DECEASE ID | ";
-        lenColumn = (longestSpouse - 10) / 2;
-        for (int i = 0; i < lenColumn; ++i) {
-            cout << " ";
-        }
-        cout << "SPOUSES ID";
-        for (int i = 0; i < lenColumn; ++i) {
-            cout << " ";
-        }
-        cout << " | ";
-        int longestChildren = getLongestDescendants(maxIndi);
-        if (longestChildren % 2 == 1) {
-            ++longestChildren;
-        }
-        lenColumn = (longestChildren - 14) / 2;
-        for (int i = 0; i < lenColumn; ++i) {
-            cout << " ";
-        }
-        cout << "DESCENDANTS ID";
-        for (int i = 0; i < lenColumn; ++i) {
-            cout << " ";
-        }
-        cout << " |\n";
-        cout << "|____________|_";
-        if (longestSpouse < 10) {
-            longestSpouse = 10;
-        }
-        for (int i = 0; i < longestSpouse; ++i) {
-            cout << "_";
-        }
-        cout << "_|_";
-        if (longestChildren < 14) {
-            longestChildren = 14;
-        }
-        for (int i = 0; i < longestChildren; ++i) {
-            cout << "_";
-        }
-        cout << "_|\n";
         for (int i = 0; i <= maxIndi; ++i) {
             if (IndiArr[i] != NULL) {
                 if (IndiArr[i]->get_death()[2] > 0) {
                     if (dateCompare(MonthBack, IndiArr[i]->get_death()) > 0) {
-                        cout << "| " << i;
-                        for (int rs = getAmtIndi(i); rs < 10; ++rs) {
-                            cout << " ";
-                        }
-                        cout << " |";
                         vector<int> family = IndiArr[i]->get_fams();
-                        string idOutput = "";
-                        stringstream buffer;
                         for (vector<int>::iterator fs = family.begin(); fs != family.end(); ++fs) {
-                            string temp;
                             if (IndiArr[i]->get_sex()) {
-                                buffer << FamArr[*fs]->get_wife();
+                                cout << "Wife: " << IndiArr[FamArr[*fs]->get_wife()]->get_name() << "\n";
                             } else {
-                                buffer << FamArr[*fs]->get_husb();
+                                cout << "Husband: " << IndiArr[FamArr[*fs]->get_husb()]->get_name() << "\n";
                             }
-                            buffer >> temp;
-                            buffer.clear();
-                            idOutput += " " + temp;
+                            cout << "Descendants:\n";
+                            printDescendants(FamArr[*fs]);
                         }
-                        cout << idOutput;
-                        for (int rs = idOutput.length() - 1; rs < longestSpouse; ++rs) {
-                            cout << " ";
-                        }
-                        cout << " |";
-                        idOutput = printDescendants(i);
-                        cout << idOutput;
-                        for (int rs = idOutput.length() - 1; rs < longestChildren; ++rs) {
-                            cout << " ";
-                        }
-                        cout << " |\n";
                     }
                 }
             }
         }
-        // Closer
-        cout << "|____________|_";
-        for (int i = 0; i < longestSpouse; ++i) {
-            cout << "_";
-        }
-        cout << "_|_";
-        for (int i = 0; i < longestChildren; ++i) {
-            cout << "_";
-        }
-        cout << "_|\n";
-    }   
+    }
 }
+
 
 /* Function lists all deceased individuals */
 void listDeceased(int &maxIndi) {
-	cout << "| DECEASED ID |\n";
-    cout << "|_____________|\n";
     for (int i = 0; i <= maxIndi; ++i) {
-        if (IndiArr[i] != NULL) {
+        if(IndiArr[i] != NULL) {
             //If individual is dead
 			if(IndiArr[i]->get_death()[2] > 0) {
-				cout << "|      " << IndiArr[i]->get_id() << "     |\n";
+				cout << "US29: " << IndiArr[i]->get_name() << "\n";
 			}
-			
 		}
 	}
-	cout << "|_____________|\n";
 }
 
-/* Function returns tabulated list of all orphans */
 void listOrphans(int &maxFam) {
-	cout << "| ORPHAN ID |\n";
-    cout << "|___________|\n";
 	for(int f=0; f <= maxFam; ++f) {
 		if(FamArr[f] != NULL) {
 			int husb = FamArr[f]->get_husb();
@@ -1293,15 +1416,15 @@ void listOrphans(int &maxFam) {
 						for (std::vector<int>::iterator c = chil.begin(); c != chil.end(); c++) {
 							Indi * child = IndiArr[*c];
 							if((currDate[2] - child->get_birth()[2]) < 18) {
-								cout << "|    " << child->get_id() <<  "    |\n";
+								cout << "US33: " << child->get_name() << "\n";
 							}
 							else if((currDate[2] - child->get_birth()[2]) == 18) {
 								if((currDate[1] - child->get_birth()[1]) < 0) {
-									cout << "|    " << child->get_id() <<  "    |\n";
+									cout << "US33: " << child->get_name() << "\n";
 								}
 								else if((currDate[1] - child->get_birth()[1]) == 0) {
 									if ((currDate[0] - child->get_birth()[0]) < 0) {
-										cout << "|    " << child->get_id() <<  "    |\n";
+										cout << "US33: " << child->get_name() << "\n";
 									}
 								}
 							}
@@ -1311,7 +1434,6 @@ void listOrphans(int &maxFam) {
 			}
 		}
 	}
-	cout << "|___________|\n";
 }
 
 /**
@@ -1361,6 +1483,30 @@ void printIndiStats(ofstream &outputFile, int &currID) {
     outputFile << "Name: " << IndiArr[currID]->get_name() << "\n";
     outputFile << "Gender: " << ((IndiArr[currID]->get_sex()) ? "Male" : "Female") << "\n";
     outputFile << "Birth date: " << birth[1] << "/" << birth[0] << "/" << birth[2] << "\n";
+    outputFile << "Age: "<<IndiAge<<"\n";
+}
+
+void printFamilyMembers(ofstream &outputFile, Fam* family) {
+    // Print father's name
+    int memberID = family->get_husb();
+    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
+        cout << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+        outputFile << "Husband: " << IndiArr[memberID]->get_name() << "\n";
+    }
+
+    // Print mother's name
+    memberID = family->get_wife();
+    if ((memberID > -1) && (IndiArr[memberID] != NULL)) {
+        cout << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+        outputFile << "Wife: " << IndiArr[memberID]->get_name() << "\n";
+    }
+
+    vector<int> children = family->get_chil();
+    for (vector<int>::iterator chil = children.begin(); chil != children.end(); ++chil) {
+        Indi* kid = IndiArr[*chil];
+        cout << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
+        outputFile << ((kid->get_sex()) ? "Son" : "Daughter") << ": " << kid->get_name() << "\n";
+    }
 }
 
 int getLongestFamily(int &maxFam) {
@@ -1478,11 +1624,11 @@ void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     lenColumn = (lenColumn - 2) / 2;
     cout << "| ";
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << "ID";
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << " | ";
     if ((longestName % 2) == 1) {
@@ -1495,7 +1641,7 @@ void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     }
     cout << "NAME";
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << " | ";
     cout << "GENDER";
@@ -1503,8 +1649,8 @@ void printIndiHeader(ofstream &outputFile, int longestName, int &maxIndi) {
     cout << "BIRTH DATE";
     cout << " | ";
     cout << "DEATH DATE";
-    cout << " |\n";
-    cout << "|";
+    cout << " |";
+    cout << "|\n";
     int i;
     if (longestNum + 2 < 4) {
         longestNum = 4;
@@ -1547,11 +1693,11 @@ void printFamHeader(ofstream &outputFile, int &maxFam) {
     lenColumn = (lenColumn - 2) / 2;
     cout << "| ";
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << "ID";
     for (int i = 0; i < lenColumn; ++i) {
-        cout << " "; 
+        cout << " ";
     }
     cout << " | HUSB ID  |";
     cout << " WIFE ID  | ";
@@ -1676,17 +1822,24 @@ void printAllFam(ofstream &outputFile, int &maxFam) {
     closeTable(false);
 }
 
-void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
+void printScreen(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestName) {
+    printIndiHeader(outputFile, longestName, maxIndi);
     int currID;
-    cout << "INDI Errors:\n";
+    for (currID = 0; currID <= maxIndi; ++currID) {
+        if (IndiArr[currID] != NULL) {
+            PersonsAge(*IndiArr[currID], currID, maxIndi);
+            printIndiStats(outputFile, currID);
+        }
+    }
+    closeTable(true);
     for (currID = 0; currID <= maxIndi; ++currID) {
         if (IndiArr[currID] != NULL) {
             // Check Valid Birth
-            checkValidBirth(*IndiArr[currID]); 
+            checkValidBirth(*IndiArr[currID]);
             // Check for Younger Than 150
             if (olderThan150(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death())) {
                 cout << "Error US07: " << IndiArr[currID]->get_name() << " (" << IndiArr[currID]->get_id() <<
-                        ") should be less than 150 years old.\n";
+                        ") should be less than 150 years old.\n"<<errorline<<"\n";
             }
             // Check Individual Not Born Out of Wedlock
             checkWedlock(*IndiArr[currID]);
@@ -1697,45 +1850,57 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
         }
     }
     cout << "\n";
-    cout << "FAM Errors:\n";
+    printFamHeader(outputFile, maxFam);
     for (currID = 0; currID <= maxFam; ++currID) {
         if (FamArr[currID] != NULL) {
-            int memberID = FamArr[currID]->get_husb(); 
+            printFamStats(outputFile, currID);
+        }
+    }
+    closeTable(false);
+    for (currID = 0; currID <= maxFam; ++currID) {
+        if (FamArr[currID] != NULL) {
+            int memberID = FamArr[currID]->get_husb();
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
                     cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding husand record\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
-                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n"<<errorline<<"\n";
                 }
                 //Check if husband was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-                    cout << "Error US05: Family " << FamArr[currID]->get_id() <<"'s husband died before being married.\n";
+                    cout << "Error US05: Husband died before being married.\n"<<errorline<<"\n";
+                }
+                if(dateCompare(FamArr[currID]->get_div(), IndiArr[memberID]->get_death()) == -1) {
+                    cout << "Error US06: Divorce cannot happen, husband died before separation.\n"<<errorline<<"\n";
                 }
                 //Check if husband is male
                 if (IndiArr[memberID]->get_sex() != true) {
-                    cout << "Error US21: Family " << FamArr[currID]->get_id() <<"'s husband is not male.\n";
+                    cout << "Error US21: Husband is not male.\n"<<errorline<<"\n";
                 }
                 //Checks Husband isn't married to descendant
                 if (FamArr[currID]->get_wife() != -1) {
                     checkParentDescendantMarriage(IndiArr[memberID], IndiArr[FamArr[currID]->get_wife()]);
                 }
             }
-            memberID = FamArr[currID]->get_wife(); 
+            memberID = FamArr[currID]->get_wife();
             if ((IndiArr[memberID] != NULL) && (memberID > -1)) {
                 // Check if spouse has corresponding Indi entry
                 if (IndiArr[memberID] == NULL) {
-                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n";
+                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding wife record\n"<<errorline<<"\n";
                 } else if (!(IndiArr[memberID]->checkFamS(currID))) {
-                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[memberID]->get_name() << " is not corresponding spouse in family " << FamArr[currID]->get_id() <<errorline<<"\n";
                 }
                 //Check if wife was alive at time of marriage
                 if (dateCompare(FamArr[currID]->get_marr(), IndiArr[memberID]->get_death()) == -1) {
-                    cout << "Error US05: Family " << FamArr[currID]->get_id() <<"'s wife died before being married.\n";
+                    cout << "Error US05: Wife died before being married.\n"<<errorline<<"\n";
+                }
+                if(dateCompare(FamArr[currID]->get_div(), IndiArr[memberID]->get_death()) == -1) {
+                    cout << "Error US06: Divorce cannot happen, wife died before separation.\n"<<errorline<<"\n";
                 }
                 //Check if wife is female
                 if (IndiArr[memberID]->get_sex() != false) {
-                    cout << "Error US21: Family " << FamArr[currID]->get_id() <<"'s wife is not female.\n";
+                    cout << "Error US21: Wife is not female.\n"<<errorline<<"\n";
                 }
                 //Checks Wife isn't married to descendant
                 if (FamArr[currID]->get_husb() != -1) {
@@ -1744,9 +1909,9 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             }
             //Checks for marriage before divorce
             if (dateCompare(FamArr[currID]->get_marr(), FamArr[currID]->get_div()) == -1) {
-                cout << "Error US04: Family " << FamArr[currID]->get_id() <<" divorced before being married.\n";
+                cout << "Error US04: Family divorced before being married.\n"<<errorline<<"\n";
             }
-            
+
             // Check unique family by spouse names and marriage date
             checkUniqueFamS(currID, maxFam);
 
@@ -1755,9 +1920,9 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
             for (std::vector<int>::iterator it = childArr.begin(); it != childArr.end(); ++it) {
                 // Check if corresponding entry for child in Indi entry
                 if (IndiArr[*it] == NULL) {
-                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n";
+                    cout << "Error US26: Family " << FamArr[currID]->get_id() << " does not have corresponding child record\n"<<errorline<<"\n";
                 } else if (!(IndiArr[*it]->checkFamC(currID))) {
-                    cout << "Error US26: " << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() << "\n";
+                    cout << "Error US26: " << IndiArr[*it]->get_name() << " is not a  corresponding child in family " << FamArr[currID]->get_id() <<errorline<<"\n";
                 }
                 for (std::vector<int>::iterator itCmp = childArr.begin(); itCmp != childArr.end(); ++itCmp) {
                     if ((IndiArr[*it] != NULL) && (IndiArr[*itCmp] != NULL)) {
@@ -1775,42 +1940,31 @@ void printErrors(ofstream &outputFile, int &maxIndi, int &maxFam, int &longestNa
                 }
             }
             if (multBirthCount > 5) {
-                cout << "Error US14: Family " << FamArr[currID]->get_id() << " has too many children born at once.\n";
+                cout << "Error US14: Family " << FamArr[currID]->get_id() << " has too many children born at once.\n"<<errorline<<"\n";
             }
             parentsNotTooOld(*FamArr[currID]);
             checkSiblingSpacing(*FamArr[currID]);
             checkSiblingMarriage(*FamArr[currID]);
             checkFirstRelativeMarriage(*FamArr[currID]);
+            checkFutureDates(IndiArr[currID]->get_birth(), IndiArr[currID]->get_death(), FamArr[currID]->get_marr(), FamArr[currID]->get_div());
+            checkUniqueIndi(currID, maxIndi);
+            checkSameName(*FamArr[currID]);
+            MarriedUnder14(*IndiArr[currID]);
         }
     }
+    ++errorline;
 }
-
 int main() {
     // vector<string> files = get_all_files_names_within_folders("./GED");
     string fileNameInput;
-    int fileNum = 1;
-    int option = 0;
     // Take input of ged file to take in as input
-    cout << "List GED Files:\n";
-    for (vector<string>::iterator it = files.begin(); it != files.end(); ++it) {
-        cout << fileNum << ". " << *it << "\n";
-        ++fileNum;
-    }
-    --fileNum;
-    cout << "Enter GED file number (1-" << fileNum << "): ";
-    cin >> option;
-    while (cin.fail() || ((option < 1) || (option > fileNum))) {
-        cout << "Failed to recognize input. Please try again...\n";
-        cout << "Enter GED file number (1-" << fileNum << "): ";
-        cin.clear();
-        cin.ignore(256, '\n');
-        cin >> option;
-    }
-    fileNameInput = files[option - 1];
+    cout << "Enter ged file name: ";
+    getline(cin, fileNameInput);
+    fileNameInput += ".ged";
     ifstream gedFile ("GED_Files/"+fileNameInput);
     ofstream outputFile;
     //int levelNumber = -1;
-    
+
     if (gedFile.is_open()) {
         outputFile.open("output.txt", ios::out);
         if (outputFile.is_open()) {
@@ -1883,7 +2037,7 @@ int main() {
                 getline(gedFile, line);
             }
             //printScreen(outputFile, maxIndi, maxFam, longestName);
-            option = 0;
+            int option = 0;
             while (option != 8) {
                 cout << "\nWhat would you like to do?\n";
                 cout << "1. Show all INDI\n";
@@ -1891,9 +2045,11 @@ int main() {
                 cout << "3. List all errors\n";
                 cout << "4. List living spouses\n";
                 cout << "5. List recent survivors\n";
-				cout << "6. List deceased\n";
-				cout << "7. List orphans\n";
-                cout << "8. Exit program\n";
+                cout << "6. List recent birth\n";
+                cout << "7. List recent death\n";
+				cout << "8. List deceased\n";
+				cout << "9. List orphans\n";
+                cout << "10. Exit program\n";
                 cout << "Input: ";
                 cin >> option;
                 while (cin.fail()) {
@@ -1911,7 +2067,6 @@ int main() {
                         printAllFam(outputFile, maxFam);
                         break;
                     case (3):
-                        printErrors(outputFile, maxIndi, maxFam, longestName);
                         break;
                     case (4):
                         listLivingMarried(maxFam);
@@ -1920,11 +2075,17 @@ int main() {
                         listRecentSurvivors(maxIndi);
                         break;
 					case (6):
-						listDeceased(maxIndi);
-						break;
-					case (7):
-						listOrphans(maxFam);
-						break;
+                        listRecentBirth(maxIndi);
+                        break;
+                    case (7):
+                        listRecentDeath(maxIndi);
+                        break;
+		    case (8):
+		        listDeceased(maxIndi);
+			break;
+		    case (9):
+		        listOrphans(maxFam);
+			break;
                     default:
                         break;
                 }
